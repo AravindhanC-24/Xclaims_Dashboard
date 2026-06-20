@@ -121,6 +121,8 @@
   .b-ap{background:var(--p7s);color:#15803d} .b-un{background:var(--p4s);color:#b45309}
 
   .empty{text-align:center; padding:66px 20px; color:var(--muted)}
+  .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--p1);margin:22px auto 0;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .empty .big{font-size:18px; font-weight:800; color:var(--ink); margin-bottom:8px}
   .empty .hint{max-width:580px; margin:0 auto 16px; font-size:13px; line-height:1.6}
   .empty code{background:var(--p1s); padding:2px 6px; border-radius:5px; font-family:var(--mono); font-size:12px; color:var(--p1)}
@@ -166,13 +168,14 @@
 
 <main>
   <div id="landing" class="empty">
-    <div class="big">Drop in your monthly workbook</div>
-    <div class="hint">Reads <code>Base</code> (A:CS), <code>Hub</code> (A:L — target in K, Approved/Unapproved in L),
-      <code>Upl. Base</code>, <code>Assessor</code> &amp; <code>CCE</code> (Zone · TL · Name · TGT), and an optional <code>Targets</code> sheet.
-      Uses your derived columns (Insurer BX, Class BY, Segment BZ, Zone CA, Status CB) and recomputes every TAT, aging &amp; SLA itself.</div>
-    <div class="drop" id="drop"><button class="upload-btn" id="uploadBtn2">Choose .xlsx file</button>
-      <div class="footnote" style="margin-top:12px">Runs entirely in your browser — your data never leaves this page.</div></div>
+    <div class="big" id="loadingTitle">Loading latest claims data…</div>
+    <div class="hint" id="loadingHint">Fetching the latest workbook from GitHub. This usually takes a few seconds.</div>
+    <div class="spinner" id="loadSpinner"></div>
     <div id="loadMsg" class="footnote" style="margin-top:16px"></div>
+    <div class="drop" id="drop" style="display:none">
+      <button class="upload-btn" id="uploadBtn2">Choose .xlsx file</button>
+      <div class="footnote" style="margin-top:12px">Runs entirely in your browser — your data never leaves this page.</div>
+    </div>
   </div>
   <div id="page-intimation" class="page active"></div>
   <div id="page-submission" class="page"></div>
@@ -1167,7 +1170,7 @@ function loadFile(file){$("#loadMsg").textContent="Reading "+file.name+" …";co
   fr.readAsArrayBuffer(file);}
 
 async function autoLoadFromGitHub(){
-  $("#loadMsg").textContent="Loading latest data…";
+  $("#loadMsg").textContent="";
   try{
     const res=await fetch(GITHUB_EXCEL_URL+"?t="+Date.now());
     if(!res.ok)throw new Error("Could not fetch file ("+res.status+")");
@@ -1175,6 +1178,11 @@ async function autoLoadFromGitHub(){
     processWorkbook(buf,"Xclaims Base.xlsx");
   }catch(err){
     console.error(err);
+    // reveal the manual-upload fallback UI since auto-load failed
+    $("#loadSpinner").style.display="none";
+    $("#loadingTitle").textContent="Drop in your monthly workbook";
+    $("#loadingHint").innerHTML='Reads <code>Base</code> (A:CS), <code>Hub</code> (A:L — target in K, Approved/Unapproved in L), <code>Upl. Base</code>, <code>Assessor</code> &amp; <code>CCE</code> (Zone · TL · Name · TGT), and an optional <code>Targets</code> sheet. Uses your derived columns (Insurer BX, Class BY, Segment BZ, Zone CA, Status CB) and recomputes every TAT, aging &amp; SLA itself.';
+    $("#drop").style.display="block";
     $("#loadMsg").innerHTML='<span class="miss">Auto-load failed: '+err.message+'. Please upload manually below.</span>';
     toast("Auto-load failed — upload manually");
   }}
