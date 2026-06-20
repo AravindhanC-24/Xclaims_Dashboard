@@ -1143,28 +1143,50 @@ function syncMonthSel(){$("#monthSel").value=monKey(state.asOf);}
 $("#fySwitch").onclick=()=>{state.fyMode=!state.fyMode;$("#fySwitch").classList.toggle("on",state.fyMode);$("#fySel").style.display=state.fyMode?"":"none";$("#monthCtrl").style.opacity=state.fyMode?.5:1;renderCurrent();};
 $("#fySel").onchange=()=>{state.fy=+$("#fySel").value;renderCurrent();};
 
-function loadFile(file){$("#loadMsg").textContent="Reading "+file.name+" …";const fr=new FileReader();
-  fr.onload=e=>{try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array",cellDates:true});DB=buildModel(wb);
+const GITHUB_EXCEL_URL="https://raw.githubusercontent.com/AravindhanC-24/Xclaims_Dashboard/main/Xclaims%20Base.xlsx";
+
+function processWorkbook(arrayBuffer,sourceName){
+  try{const wb=XLSX.read(new Uint8Array(arrayBuffer),{type:"array",cellDates:true});DB=buildModel(wb);
     state.asOf=new Date(DB.maxDate);state.fy=DB.fys.length?DB.fys[DB.fys.length-1]:fyStartYear(DB.maxDate);
     $("#asOf").value=dayKey(state.asOf);$("#asOf").max=dayKey(DB.maxDate);
     $("#activeN").innerHTML=Array.from({length:10},(_,i)=>`<option>${i+1}</option>`).join("");
     $("#monthSel").innerHTML=DB.months.map(mk=>`<option value="${mk}">${mLabel(new Date(Math.floor(mk/12),mk%12,1))}</option>`).join("");
     syncMonthSel();
     $("#fySel").innerHTML=DB.fys.map(y=>`<option value="${y}" ${y===state.fy?"selected":""}>${fyLabel(y)}</option>`).join("");
-    $("#fileName").textContent=file.name+" · "+fmt(DB.rows.length)+" rows";
+    $("#fileName").textContent=sourceName+" · "+fmt(DB.rows.length)+" rows";
     ["#fyCtrl","#monthCtrl","#dateCtrl","#activeCtrl"].forEach(s=>$(s).style.display="flex");
     $("#tabs").style.display="flex";$("#filterbar").style.display="flex";$("#landing").style.display="none";
     fillFilters();
     const nA=Object.keys(DB.aMeta).length,nC=Object.keys(DB.cMeta).length;
     toast("Loaded "+fmt(DB.rows.length)+" cases · "+nA+" assessors · "+nC+" CCEs");
     switchTab("intimation");
-  }catch(err){console.error(err);$("#loadMsg").innerHTML='<span class="miss">Could not read file: '+err.message+'</span>';toast("Error: "+err.message);}};
+  }catch(err){console.error(err);$("#loadMsg").innerHTML='<span class="miss">Could not read file: '+err.message+'</span>';toast("Error: "+err.message);}}
+
+function loadFile(file){$("#loadMsg").textContent="Reading "+file.name+" …";const fr=new FileReader();
+  fr.onload=e=>{processWorkbook(e.target.result,file.name);};
   fr.readAsArrayBuffer(file);}
+
+async function autoLoadFromGitHub(){
+  $("#loadMsg").textContent="Loading latest data…";
+  try{
+    const res=await fetch(GITHUB_EXCEL_URL+"?t="+Date.now());
+    if(!res.ok)throw new Error("Could not fetch file ("+res.status+")");
+    const buf=await res.arrayBuffer();
+    processWorkbook(buf,"Xclaims Base.xlsx");
+  }catch(err){
+    console.error(err);
+    $("#loadMsg").innerHTML='<span class="miss">Auto-load failed: '+err.message+'. Please upload manually below.</span>';
+    toast("Auto-load failed — upload manually");
+  }}
+
 ["#uploadBtn","#uploadBtn2"].forEach(s=>$(s).onclick=()=>$("#file").click());
 $("#file").onchange=e=>{if(e.target.files[0])loadFile(e.target.files[0]);};
 const drop=$("#drop");["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("hot");}));
 ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("hot");}));
 drop.addEventListener("drop",e=>{if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+
+// Auto-load on page open
+autoLoadFromGitHub();
 </script>
 </body>
 </html>
