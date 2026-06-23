@@ -251,7 +251,7 @@ const col=L=>{let n=0;for(const c of L)n=n*26+(c.charCodeAt(0)-64);return n-1;};
 const C={case:col("A"),status:col("B"),insurerRaw:col("E"),policy:col("H"),vtype:col("K"),make:col("N"),model:col("O"),
   created:col("T"),createdTime:col("U"),settle:col("AE"),allocD:col("AF"),allocT:col("AG"),inspDepD:col("AH"),inspDepT:col("AI"),
   inspCompD:col("AJ"),inspCompT:col("AK"),roD:col("AQ"),roT:col("AR"),invGenD:col("AS"),invAmt:col("AV"),finalD:col("AW"),
-  cce:col("BA"),assessor:col("BC"),officeCode:col("BF"),estimate:col("BH"),nextAction:col("BP"),remarkUpd:col("BQ"),
+  cce:col("BB"),assessor:col("BC"),officeCode:col("BF"),estimate:col("BH"),nextAction:col("BP"),remarkUpd:col("BQ"),
   dInsurer:col("BX"),dProduct:col("BY"),dSeg:col("BZ"),dZone:col("CA"),dStatus:col("CB"),dIntCode:col("CS")};
 function classifyInsurer(e){if(has(e,"United"))return"United";if(has(e,"New India"))return"New India";if(has(e,"National"))return"National";if(has(e,"Oriental"))return"Oriental";return"";}
 function classifyProduct(e,h,n){h=h==null?"":String(h);n=n==null?"":String(n);const L6=h.slice(0,6),len=h.length;
@@ -920,6 +920,52 @@ function renderPerf(){
 
   const scopeLabel=f.hub?f.hub:(f.ro?f.ro+" (all hubs)":(f.insurer?f.insurer+" (all ROs)":"All Insurers, ROs & Hubs"));
 
+  // ===== New Summary — dynamic 6-month / 1-year window =====
+  const rangeN=state.perfRange||6;
+  const curMK=monKey(state.asOf);
+  const monthKeys=[]; for(let i=rangeN-1;i>=0;i--)monthKeys.push(curMK-i);
+  const monthDates=monthKeys.map(mk=>new Date(Math.floor(mk/12),mk%12,1));
+  const nsLabels=monthDates.map(mLabel);
+  const nsByMonth=monthDates.map(md=>{
+    const rows=scoped.filter(r=>r.created&&monKey(r.created)===monKey(md));
+    const reported=rows.length;
+    const cancelled=rows.filter(r=>r.status==="Case Cancelled").length;
+    const submitted=rows.filter(r=>r.finalD).length; // has a final report date at all
+    const reportSubmitted=rows.filter(r=>r.status==="Report Submitted").length;
+    const outstanding=rows.filter(r=>r.status==="Outstanding").length;
+    return {label:mLabel(md),reported,submitted,cancelled,reportSubmitted,outstanding,subRatio:reported?reportSubmitted/reported:null};
+  });
+  const nsTotR=nsByMonth.reduce((s,m)=>s+m.reported,0), nsTotS=nsByMonth.reduce((s,m)=>s+m.submitted,0),
+        nsTotC=nsByMonth.reduce((s,m)=>s+m.cancelled,0), nsTotRS=nsByMonth.reduce((s,m)=>s+m.reportSubmitted,0),
+        nsTotOS=nsByMonth.reduce((s,m)=>s+m.outstanding,0), nsSubPct=nsTotR?nsTotRS/nsTotR:null;
+
+  // window rows for product-wise / claim-size / RO overall blocks (all rows created within the window)
+  const winStart=monthDates[0], winEnd=new Date(monthDates[monthDates.length-1].getFullYear(),monthDates[monthDates.length-1].getMonth()+1,0,23,59,59);
+  const winRows=scoped.filter(r=>r.created&&r.created>=winStart&&r.created<=winEnd);
+  const nsVtypeRows=v=>winRows.filter(r=>r.vtype===v);
+  const nsProdWise=vtypes.map(v=>{const rs=nsVtypeRows(v);const reported=rs.length,submittedRows=rs.filter(r=>r.finalD),submitted=submittedRows.length,
+    cancelled=rs.filter(r=>r.status==="Case Cancelled").length,outstanding=rs.filter(r=>r.status==="Outstanding").length;
+    return {v,reported,submitted,cancelled,outstanding,subPct:reported?submitted/reported:null,tat:avg(submittedRows.map(r=>r.subTAT)),ticket:avg(submittedRows.map(r=>r.settle))};});
+  const nsOverall={reported:winRows.length,submitted:winRows.filter(r=>r.finalD).length,cancelled:winRows.filter(r=>r.status==="Case Cancelled").length,
+    outstanding:winRows.filter(r=>r.status==="Outstanding").length};
+  nsOverall.subPct=nsOverall.reported?nsOverall.submitted/nsOverall.reported:null;
+  const nsOverallSub=winRows.filter(r=>r.finalD);
+  nsOverall.tat=avg(nsOverallSub.map(r=>r.subTAT)); nsOverall.ticket=avg(nsOverallSub.map(r=>r.settle));
+
+  // Estimation vs Settlement — month wise (uses rows with a final report, i.e. settled cases, within window)
+  const nsEstByMonth=monthDates.map(md=>{
+    const rows=winRows.filter(r=>r.finalD&&monKey(r.created)===monKey(md));
+    const est=rows.reduce((s,r)=>s+(r.estimate||0),0), setl=rows.reduce((s,r)=>s+(r.settle||0),0);
+    return {label:mLabel(md),est,setl,savings:est-setl,pct:est?(est-setl)/est:null};
+  });
+  const nsEstTot={est:nsEstByMonth.reduce((s,m)=>s+m.est,0),setl:nsEstByMonth.reduce((s,m)=>s+m.setl,0)};
+  nsEstTot.savings=nsEstTot.est-nsEstTot.setl; nsEstTot.pct=nsEstTot.est?nsEstTot.savings/nsEstTot.est:null;
+
+  // Estimation vs Settlement — vehicle type wise (within window)
+  const nsEstByVtype=vtypes.map(v=>{const rows=nsVtypeRows(v).filter(r=>r.finalD);
+    const est=rows.reduce((s,r)=>s+(r.estimate||0),0), setl=rows.reduce((s,r)=>s+(r.settle||0),0);
+    return {v,est,setl,savings:est-setl,pct:est?(est-setl)/est:null};});
+
   $("#page-perf").innerHTML=`
   <div class="filterbar" style="position:static;margin:0 0 14px;top:auto">
     <div class="f"><label>Insurer</label><select id="pf_insurer"><option value="">All Insurers</option>${insurerNames.map(i=>`<option ${i===f.insurer?"selected":""}>${i}</option>`).join("")}</select></div>
@@ -974,6 +1020,53 @@ function renderPerf(){
       ${kpi("Above 15 Days",fmt(osByBucket[2]),pct(osRows.length?osByBucket[2]/osRows.length:null),"c3")}
     </div>`)}
   </div>
+
+  <div class="sectionhead t5"><span class="eyebrow">New Summary</span><h2>Month-wise intimation &amp; submission, product mix, claim size &amp; savings</h2><div class="rule"></div></div>
+  <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
+    <div class="f"><label>Range</label><select id="ns_range">
+      <option value="6" ${rangeN===6?"selected":""}>Last 6 Months</option>
+      <option value="12" ${rangeN===12?"selected":""}>Last 1 Year</option>
+    </select></div>
+    <div class="scope">Window: <b>${nsLabels[0]} – ${nsLabels[nsLabels.length-1]}</b></div>
+  </div>
+
+  <div class="card tall">${table(["Month","Cases Reported","Submitted","Case Cancelled","Report Submitted","Outstanding","Submission %"],
+    nsByMonth.map(m=>`<tr><td>${m.label}</td><td class="num">${fmt(m.reported)}</td><td class="num">${fmt(m.submitted)}</td><td class="num">${fmt(m.cancelled)}</td><td class="num">${fmt(m.reportSubmitted)}</td><td class="num">${fmt(m.outstanding)}</td><td class="num">${pct(m.subRatio)}</td></tr>`).join("")
+    +`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td><td class="num">${fmt(nsTotR)}</td><td class="num">${fmt(nsTotS)}</td><td class="num">${fmt(nsTotC)}</td><td class="num">${fmt(nsTotRS)}</td><td class="num">${fmt(nsTotOS)}</td><td class="num">${pct(nsSubPct)}</td></tr>`)}
+    ${cv("ns_trend")}</div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <h3><span class="dot"></span>Product wise summary</h3>
+      ${table(["Vehicle Type","Cases Reported","Submitted","Case Cancelled","Outstanding","Submission %","TAT","Ticket Size"],
+        nsProdWise.map(x=>`<tr><td>${x.v}</td><td class="num">${fmt(x.reported)}</td><td class="num">${fmt(x.submitted)}</td><td class="num">${fmt(x.cancelled)}</td><td class="num">${fmt(x.outstanding)}</td><td class="num">${pct(x.subPct)}</td><td class="num">${fmt1(x.tat)}</td><td class="num">${money(x.ticket)}</td></tr>`).join("")
+        +`<tr style="font-weight:700;background:var(--bg2)"><td>Overall</td><td class="num">${fmt(nsOverall.reported)}</td><td class="num">${fmt(nsOverall.submitted)}</td><td class="num">${fmt(nsOverall.cancelled)}</td><td class="num">${fmt(nsOverall.outstanding)}</td><td class="num">${pct(nsOverall.subPct)}</td><td class="num">${fmt1(nsOverall.tat)}</td><td class="num">${money(nsOverall.ticket)}</td></tr>`)}
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>RO wise overall (this scope)</h3>
+      ${table(["Metric","Value"],[
+        ["Cases Reported",fmt(nsOverall.reported)],["Submitted",fmt(nsOverall.submitted)],["Cancelled",fmt(nsOverall.cancelled)],
+        ["Outstanding",fmt(nsOverall.outstanding)],["Submission %",pct(nsOverall.subPct)],["TAT",fmt1(nsOverall.tat)+" d"],["Ticket Size",money(nsOverall.ticket)]
+      ].map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join(""))}
+    </div>
+  </div>
+
+  <div class="sectionhead t6"><span class="eyebrow">Claim size &amp; savings</span><h2>Average claim size &amp; TAT, estimation vs settlement</h2><div class="rule"></div></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="dot"></span>Estimation vs settlement — month wise</h3>
+      ${table(["Month","Estimation Amount","Settlement Amount","Claim Savings","% of Savings"],
+        nsEstByMonth.map(m=>`<tr><td>${m.label}</td><td class="num">${money(m.est)}</td><td class="num">${money(m.setl)}</td><td class="num">${money(m.savings)}</td><td class="num">${pct(m.pct)}</td></tr>`).join("")
+        +`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td><td class="num">${money(nsEstTot.est)}</td><td class="num">${money(nsEstTot.setl)}</td><td class="num">${money(nsEstTot.savings)}</td><td class="num">${pct(nsEstTot.pct)}</td></tr>`)}
+      ${cv("ns_esttrend")}
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Estimation vs settlement — vehicle type wise</h3>
+      ${table(["Vehicle Type","Estimation Amount","Settlement Amount","Claim Savings","% of Savings"],
+        nsEstByVtype.map(x=>`<tr><td>${x.v}</td><td class="num">${money(x.est)}</td><td class="num">${money(x.setl)}</td><td class="num">${money(x.savings)}</td><td class="num">${pct(x.pct)}</td></tr>`).join("")||emptyRow(5))}
+      ${cv("ns_estvtype")}
+    </div>
+  </div>
   `;
 
   mkChart("pf_intimvtype",barCfg(vtypes,intimByVtype,false,[PAL[0],PAL[5],PAL[4]],true));
@@ -983,6 +1076,23 @@ function renderPerf(){
   mkChart("pf_osbucket",barCfg(osBuckets,osByBucket,false,[PAL[6],PAL[3],PAL[2]],true));
   mkChart("pf_osproduct",barCfg(vtypes,osByVtype,true,PAL,true));
   mkChart("pf_osseg",doughnutCfg(segments,segments.map((s,i)=>osBySeg[i]),SEGC));
+
+  mkChart("ns_trend",lineCfg(nsLabels,[
+    {label:"Cases Reported",data:nsByMonth.map(m=>m.reported),color:PAL[0]},
+    {label:"Submitted",data:nsByMonth.map(m=>m.submitted),color:PAL[1]},
+    {label:"Report Submitted",data:nsByMonth.map(m=>m.reportSubmitted),color:PAL[2]},
+    {label:"Outstanding",data:nsByMonth.map(m=>m.outstanding),color:PAL[3]}
+  ],true));
+  mkChart("ns_esttrend",groupedCfg(nsEstByMonth.map(m=>m.label),[
+    {label:"Estimation",data:nsEstByMonth.map(m=>Math.round(m.est)),color:PAL[5]},
+    {label:"Settlement",data:nsEstByMonth.map(m=>Math.round(m.setl)),color:PAL[1]}
+  ],false,true));
+  mkChart("ns_estvtype",groupedCfg(nsEstByVtype.map(x=>x.v),[
+    {label:"Estimation",data:nsEstByVtype.map(x=>Math.round(x.est)),color:PAL[5]},
+    {label:"Settlement",data:nsEstByVtype.map(x=>Math.round(x.setl)),color:PAL[1]}
+  ],false,true));
+
+  $("#ns_range").onchange=e=>{state.perfRange=+e.target.value;renderPerf();};
 
   $("#pf_insurer").onchange=e=>{state.perfFilter.insurer=e.target.value;state.perfFilter.ro="";state.perfFilter.hub="";renderPerf();};
   $("#pf_ro").onchange=e=>{state.perfFilter.ro=e.target.value;state.perfFilter.hub="";renderPerf();};
@@ -1124,7 +1234,7 @@ async function renderDensity(){
 
 
 
-const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:"",zone:"",segment:"",vtype:""},osElapsed:5,subAFilter:{tl:"",zone:""},assFilter:{tl:"",zone:""},cceFilter:{tl:"",zone:""},perfFilter:{insurer:"",ro:"",hub:""},densityFilter:{insurer:"",vtype:"",segment:""},densityM1:null,densityM2:null};
+const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:"",zone:"",segment:"",vtype:""},osElapsed:5,subAFilter:{tl:"",zone:""},assFilter:{tl:"",zone:""},cceFilter:{tl:"",zone:""},perfFilter:{insurer:"",ro:"",hub:""},perfRange:6,densityFilter:{insurer:"",vtype:"",segment:""},densityM1:null,densityM2:null};
 const RENDER={intimation:renderIntimation,submission:renderSubmission,outstanding:renderOutstanding,assessor:renderAssessor,cce:renderCCE,upload:renderUpload,hub:renderHub,ro:renderRO,perf:renderPerf,density:renderDensity};
 let current="intimation";
 function renderCurrent(){clearCharts();try{RENDER[current]();}catch(e){console.error(e);toast("Render error: "+e.message);}updateScope();}
