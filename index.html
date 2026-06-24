@@ -57,6 +57,18 @@
   .filterbar label{font-size:9.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:800}
   .filterbar select{border:1px solid var(--line); border-radius:9px; padding:7px 9px; font:inherit; font-size:12.5px; background:#fff; color:var(--ink); min-width:118px}
   .filterbar .reset{margin-left:auto; align-self:center; background:var(--p3s); color:#d8442f; border:none; border-radius:9px; padding:8px 13px; font-weight:700; cursor:pointer; font-size:12px}
+  .msel{position:relative; min-width:140px}
+  .msel-btn{border:1px solid var(--line); border-radius:9px; padding:7px 9px; font:inherit; font-size:12.5px; background:#fff; color:var(--ink); min-width:140px; max-width:220px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; white-space:nowrap; overflow:hidden}
+  .msel-btn .lbl{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .msel-btn .car{font-size:9px; color:var(--muted); flex:none}
+  .msel-btn.active{border-color:var(--p1)}
+  .msel-panel{position:absolute; top:calc(100% + 5px); left:0; z-index:60; background:#fff; border:1px solid var(--line); border-radius:11px; box-shadow:0 8px 28px rgba(31,37,64,.14); min-width:200px; max-width:280px; max-height:280px; overflow-y:auto; padding:6px; display:none}
+  .msel-panel.open{display:block}
+  .msel-row{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:7px; cursor:pointer; font-size:12.5px}
+  .msel-row:hover{background:var(--bg)}
+  .msel-row input{margin:0; accent-color:var(--p1)}
+  .msel-actions{display:flex; gap:6px; padding:4px 6px 8px; border-bottom:1px solid var(--line2); margin-bottom:4px}
+  .msel-actions button{flex:1; border:none; background:var(--bg2); color:var(--p1); border-radius:7px; padding:5px 0; font-size:11px; font-weight:700; cursor:pointer}
   .filterbar .scope{font-size:11px;color:var(--muted);align-self:center} .filterbar .scope b{color:var(--p1)}
 
   main{padding:16px 22px 44px; max-width:1560px; margin:0 auto}
@@ -158,10 +170,10 @@
 </nav>
 
 <div class="filterbar" id="filterbar" style="display:none">
-  <div class="f"><label>Insurer</label><select id="flt_insurer"><option value="">All</option></select></div>
-  <div class="f"><label>Zone</label><select id="flt_zone"><option value="">All</option></select></div>
-  <div class="f"><label>Segment</label><select id="flt_segment"><option value="">All</option></select></div>
-  <div class="f"><label>Vehicle Type</label><select id="flt_vtype"><option value="">All</option></select></div>
+  <div id="flt_insurer_holder"></div>
+  <div id="flt_zone_holder"></div>
+  <div id="flt_segment_holder"></div>
+  <div id="flt_vtype_holder"></div>
   <div class="scope" id="scopeNote"></div>
   <button class="reset" id="fltReset">Reset</button>
 </div>
@@ -193,6 +205,34 @@
 <script>
 /* ===== PART 1 — utilities ===== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ---- reusable multi-select dropdown ---- */
+function mselHTML(id,label,options,selected){
+  const sel=selected||[];
+  const lbl=sel.length===0?"All":(sel.length===1?String(sel[0]):sel.length+" selected");
+  return `<div class="f"><label>${label}</label><div class="msel" id="${id}_wrap">
+    <button type="button" class="msel-btn${sel.length?" active":""}" id="${id}_btn"><span class="lbl">${lbl}</span><span class="car">▾</span></button>
+    <div class="msel-panel" id="${id}_panel">
+      <div class="msel-actions"><button type="button" data-act="all">All</button><button type="button" data-act="none">None</button></div>
+      ${options.map(o=>`<label class="msel-row"><input type="checkbox" value="${o}" ${sel.includes(o)?"checked":""}>${o}</label>`).join("")}
+    </div>
+  </div></div>`;
+}
+function wireMsel(id,onChange){
+  const wrap=$("#"+id+"_wrap"); if(!wrap)return;
+  const btn=$("#"+id+"_btn"), panel=$("#"+id+"_panel");
+  btn.onclick=e=>{e.stopPropagation();$$(".msel-panel.open").forEach(p=>{if(p!==panel)p.classList.remove("open");});panel.classList.toggle("open");};
+  panel.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.onchange=()=>{
+    const vals=[...panel.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);
+    onChange(vals);
+  };});
+  panel.querySelectorAll('[data-act]').forEach(b=>{b.onclick=e=>{e.stopPropagation();
+    const cbs=[...panel.querySelectorAll('input[type="checkbox"]')];
+    if(b.dataset.act==="all"){cbs.forEach(c=>c.checked=true);onChange(cbs.map(c=>c.value));}
+    else{cbs.forEach(c=>c.checked=false);onChange([]);}
+  };});
+}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".msel"))return;$$(".msel-panel.open").forEach(p=>p.classList.remove("open"));});
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const fmt=n=>(n==null||isNaN(n))?"–":Math.round(n).toLocaleString("en-IN");
@@ -356,7 +396,7 @@ function computePeriod(){const asOf=state.asOf;
 function prev3(){const a=state.asOf,m0=new Date(a.getFullYear(),a.getMonth(),1);return [addMonths(m0,-1),addMonths(m0,-2),addMonths(m0,-3)];}
 
 function univ(zoneField){const f=state.flt,zf=zoneField||"zone";
-  return DB.rows.filter(r=>{if(f.insurer&&r.insurer!==f.insurer)return false;if(f.segment&&r.segment!==f.segment)return false;if(f.vtype&&r.vtype!==f.vtype)return false;if(f.zone&&(r[zf]||r.zone)!==f.zone)return false;return true;});}
+  return DB.rows.filter(r=>{if(f.insurer.length&&!f.insurer.includes(r.insurer))return false;if(f.segment.length&&!f.segment.includes(r.segment))return false;if(f.vtype.length&&!f.vtype.includes(r.vtype))return false;if(f.zone.length&&!f.zone.includes(r[zf]||r.zone))return false;return true;});}
 
 /* sortable */
 document.addEventListener("click",e=>{const th=e.target.closest("table.sortable th");if(!th)return;
@@ -511,7 +551,7 @@ function renderSubmission(){
   const tlOpts=[...new Set(all.map(r=>r.aTL).filter(Boolean))].sort();
   const zOpts=[...new Set(all.map(r=>r.aZone).filter(Boolean))].sort();
   const af=state.subAFilter;
-  const aRows=cur.filter(r=>(!af.tl||r.aTL===af.tl)&&(!af.zone||r.aZone===af.zone));
+  const aRows=cur.filter(r=>(!af.tl.length||af.tl.includes(r.aTL))&&(!af.zone.length||af.zone.includes(r.aZone)));
   const assessors=[...new Set(aRows.map(r=>r.assessor).filter(Boolean))];
   const aDetail=assessors.map(a=>{const g=aRows.filter(r=>r.assessor===a);const ga=all.filter(r=>r.assessor===a);
     return {a,tl:g[0].aTL,zone:g[0].aZone,ftd:ga.filter(r=>P.isFTD(r.finalD)).length,mtd:g.length,lmtd:ga.filter(r=>r.finalD&&P.inPrev(r.finalD)).length,
@@ -541,8 +581,8 @@ function renderSubmission(){
 
   <div class="sectionhead t2"><span class="eyebrow">Assessor</span><h2>Assessor-wise submission & TAT</h2><div class="rule"></div></div>
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
-    <div class="f"><label>TL</label><select id="sa_tl"><option value="">All</option>${tlOpts.map(o=>`<option ${o===af.tl?"selected":""}>${o}</option>`).join("")}</select></div>
-    <div class="f"><label>Zone</label><select id="sa_zone"><option value="">All</option>${zOpts.map(o=>`<option ${o===af.zone?"selected":""}>${o}</option>`).join("")}</select></div>
+    <div id="sa_tl_holder"></div>
+    <div id="sa_zone_holder"></div>
     <div class="scope">${fmt(aRows.length)} submissions in view</div>
   </div>
   <div class="card">${table(["Assessor","TL","Zone","FTD",P.curLabel,P.prevLabel,"Sub TAT(d)","Avg Settle","VRO TAT","Alloc→FSR","Inv→FSR"],
@@ -563,8 +603,10 @@ function renderSubmission(){
   mkChart("s_segment",doughnutCfg(["Retail","PB","Tie-up"],["Retail","PB","Tie-up"].map(s=>bySeg.get(s)||0),SEGC));
   mkChart("s_vtype",doughnutCfg([...byVtype.keys()],[...byVtype.values()],PAL));
   mkChart("s_trend",lineCfg(trL,[{label:"Submissions",data:trD,color:PAL[1]}],true));
-  $("#sa_tl").onchange=e=>{state.subAFilter.tl=e.target.value;renderSubmission();};
-  $("#sa_zone").onchange=e=>{state.subAFilter.zone=e.target.value;renderSubmission();};
+  $("#sa_tl_holder").innerHTML=mselHTML("sa_tl","TL",tlOpts,af.tl);
+  wireMsel("sa_tl",vals=>{state.subAFilter.tl=vals;renderSubmission();});
+  $("#sa_zone_holder").innerHTML=mselHTML("sa_zone","Zone",zOpts,af.zone);
+  wireMsel("sa_zone",vals=>{state.subAFilter.zone=vals;renderSubmission();});
   wireTopN(renderSubmission);
 }
 
@@ -652,14 +694,16 @@ function assessorRows(P,scoped){
 function renderAssessor(){
   const P=computePeriod(); const allRows=DB.rows;   // global filters do NOT apply here
   const tlOpts=[...new Set(allRows.map(r=>r.aTL).filter(Boolean))].sort(), zOpts=[...new Set(allRows.map(r=>r.aZone).filter(Boolean))].sort();
-  const f=state.assFilter; const scoped=allRows.filter(r=>(!f.tl||r.aTL===f.tl)&&(!f.zone||r.aZone===f.zone));
+  const segOpts=["Retail","PB","Tie-up"].filter(s=>allRows.some(r=>r.segment===s));
+  const f=state.assFilter; const scoped=allRows.filter(r=>(!f.tl.length||f.tl.includes(r.aTL))&&(!f.zone.length||f.zone.includes(r.aZone))&&(!f.segment.length||f.segment.includes(r.segment)));
   let rs=assessorRows(P,scoped).filter(x=>x.active).sort((a,b)=>b.sub-a.sub);   // only names active in selected month
   const totSub=rs.reduce((s,x)=>s+x.sub,0),totTgt=rs.reduce((s,x)=>s+x.t,0),totOS=rs.reduce((s,x)=>s+x.os,0);
-  const elig=rs.filter(x=>x.sub>=5&&x.osTAT!=null&&x.overallTAT!=null);
+  const elig=rs.filter(x=>x.sub>=80&&x.osTAT!=null&&x.overallTAT!=null);
   const score=x=>(x.overallTAT||0)+(x.osTAT||0)+((x.vroTAT||0)/60);
   const ranked=[...elig].sort((a,b)=>score(a)-score(b));
   const top3=ranked.slice(0,3).map(x=>({name:x.a,...x})), bot3=ranked.slice(-3).reverse().map(x=>({name:x.a,...x}));
   const topB=rs.slice(0,12);
+  const segLabel=f.segment.length?(f.segment.length===1?f.segment[0]:f.segment.length+" segments"):"All segments";
 
   $("#page-assessor").innerHTML=`
   <div class="kpis">
@@ -669,26 +713,34 @@ function renderAssessor(){
     ${kpi("Outstanding",fmt(totOS),"open across assessors","c3")}
     ${kpi("Above SLA",fmt(rs.reduce((s,x)=>s+x.aboveSLA,0)),"aging breaches","c5")}
   </div>
-  <div class="sectionhead t2"><span class="eyebrow">Performance · ${P.scope}</span><h2>Top 3 & Bottom 3 assessors</h2><div class="rule"></div></div>
+  <div class="sectionhead t2"><span class="eyebrow">Performance · ${P.scope}</span><h2>Top 3 & Bottom 3 assessors — ${segLabel}</h2><div class="rule"></div></div>
+  <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
+    <div id="a_seg_holder"></div>
+    <div class="scope">Eligibility: 80+ submissions in ${segLabel.toLowerCase()} · ${fmt(elig.length)} eligible</div>
+  </div>
   <div class="grid g2">
     <div class="card"><h3><span class="dot"></span>Top 3 — fastest TAT & lowest OS aging</h3>${podium(top3,"good",x=>`Sub TAT ${fmt1(x.overallTAT)}d · OS age ${fmt1(x.osTAT)}d · VRO ${minsToHrs(x.vroTAT)}`)}</div>
     <div class="card"><h3><span class="dot"></span>Bottom 3 — needs attention</h3>${podium(bot3,"bad",x=>`Sub TAT ${fmt1(x.overallTAT)}d · OS age ${fmt1(x.osTAT)}d · VRO ${minsToHrs(x.vroTAT)}`)}</div>
   </div>
   <div class="grid g2" style="margin-top:14px">${card("Assessor-wise submission",cv("a_com"))}${card("Outstanding aging split",cv("a_os"))}</div>
 
-  <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Full assessor sheet · filter by TL & Zone</h2><div class="rule"></div></div>
+  <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Full assessor sheet · filter by TL, Zone & Segment</h2><div class="rule"></div></div>
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
-    <div class="f"><label>TL</label><select id="a_tl"><option value="">All</option>${tlOpts.map(o=>`<option ${o===f.tl?"selected":""}>${o}</option>`).join("")}</select></div>
-    <div class="f"><label>Zone</label><select id="a_zone"><option value="">All</option>${zOpts.map(o=>`<option ${o===f.zone?"selected":""}>${o}</option>`).join("")}</select></div>
-    <div class="scope">${fmt(rs.length)} active assessors · ${P.scope}</div>
+    <div id="a_tl_holder"></div>
+    <div id="a_zone_holder"></div>
+    <div class="scope">${fmt(rs.length)} active assessors · ${P.scope} · ${segLabel}</div>
   </div>
   <div class="card">${table(["Assessor","Zone","TL","TGT","FTD Sub",P.curLabel+" Sub",P.prevLabel,"Com %","Req","FTD Alloc",P.curLabel+" Alloc","OS","0-5","6-15",">15","% >15","2W","4W","CV","Overall TAT(d)","VRO TAT","Inv→Sub(d)","OS TAT(d)","Avg Settle","OS Retail","OS Tie-up","OS PB","Above SLA"],
     rs.map(x=>`<tr><td>${x.a}</td><td>${x.zone}</td><td>${x.tl}</td><td class="num">${x.t||"–"}</td><td class="num">${x.ftdSub}</td><td class="num">${x.sub}</td><td class="num">${x.subP}</td><td class="num">${x.com==null?"–":pct(x.com)}</td><td class="num">${x.req==null?"–":x.req}</td><td class="num">${x.ftdAlloc}</td><td class="num">${x.mtdAlloc}</td><td class="num">${x.os}</td><td class="num">${x.s05}</td><td class="num">${x.s615}</td><td class="num">${x.sA15}</td><td class="num">${pct(x.p15)}</td><td class="num">${x.w2}</td><td class="num">${x.w4}</td><td class="num">${x.cv}</td><td class="num">${fmt1(x.overallTAT)}</td><td class="num">${minsToHrs(x.vroTAT)}</td><td class="num">${fmt1(x.invSub)}</td><td class="num">${fmt1(x.osTAT)}</td><td class="num">${money(x.setl)}</td><td class="num">${x.osRetail}</td><td class="num">${x.osTie}</td><td class="num">${x.osPB}</td><td class="num">${x.aboveSLA}</td></tr>`).join(""),{x:true})}
     ${totTgt?"":'<div class="footnote miss">No targets read — ensure the Assessor sheet has a TGT column.</div>'}</div>`;
   mkChart("a_com",barCfg(topB.map(x=>x.a),topB.map(x=>x.sub),true,PAL,true));
   mkChart("a_os",{type:"bar",data:{labels:topB.map(x=>x.a),datasets:[{label:"0-5",data:topB.map(x=>x.s05),backgroundColor:PAL[6]},{label:"6-15",data:topB.map(x=>x.s615),backgroundColor:PAL[3]},{label:">15",data:topB.map(x=>x.sA15),backgroundColor:PAL[2]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
-  $("#a_tl").onchange=e=>{state.assFilter.tl=e.target.value;renderAssessor();};
-  $("#a_zone").onchange=e=>{state.assFilter.zone=e.target.value;renderAssessor();};
+  $("#a_seg_holder").innerHTML=mselHTML("a_seg","Segment",segOpts,f.segment);
+  wireMsel("a_seg",vals=>{state.assFilter.segment=vals;renderAssessor();});
+  $("#a_tl_holder").innerHTML=mselHTML("a_tl","TL",tlOpts,f.tl);
+  wireMsel("a_tl",vals=>{state.assFilter.tl=vals;renderAssessor();});
+  $("#a_zone_holder").innerHTML=mselHTML("a_zone","Zone",zOpts,f.zone);
+  wireMsel("a_zone",vals=>{state.assFilter.zone=vals;renderAssessor();});
 }
 
 /* ===== TAB 5 — CCE (replicates CCE sheet) ===== */
@@ -712,7 +764,7 @@ function cceRows(P,scoped){
 function renderCCE(){
   const P=computePeriod(); const allRows=DB.rows;   // global filters do NOT apply here
   const tlOpts=[...new Set(allRows.map(r=>r.cTL).filter(Boolean))].sort(), zOpts=[...new Set(allRows.map(r=>r.cZone).filter(Boolean))].sort();
-  const f=state.cceFilter; const scoped=allRows.filter(r=>(!f.tl||r.cTL===f.tl)&&(!f.zone||r.cZone===f.zone));
+  const f=state.cceFilter; const scoped=allRows.filter(r=>(!f.tl.length||f.tl.includes(r.cTL))&&(!f.zone.length||f.zone.includes(r.cZone)));
   let rs=cceRows(P,scoped).filter(x=>x.active).sort((a,b)=>b.mtd-a.mtd);
   const totMtd=rs.reduce((s,x)=>s+x.mtd,0),totTgt=rs.reduce((s,x)=>s+x.t,0),totOS=rs.reduce((s,x)=>s+x.outstanding,0);
   const elig=rs.filter(x=>x.linkShared>=5&&x.linkTAT!=null&&x.compTAT!=null);
@@ -736,8 +788,8 @@ function renderCCE(){
   <div class="grid g2" style="margin-top:14px">${card("CCE-wise handled",cv("c_com"))}${card("Outstanding split",cv("c_pipe"))}</div>
   <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Full CCE sheet · filter by TL & Zone</h2><div class="rule"></div></div>
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
-    <div class="f"><label>TL</label><select id="c_tl"><option value="">All</option>${tlOpts.map(o=>`<option ${o===f.tl?"selected":""}>${o}</option>`).join("")}</select></div>
-    <div class="f"><label>Zone</label><select id="c_zone"><option value="">All</option>${zOpts.map(o=>`<option ${o===f.zone?"selected":""}>${o}</option>`).join("")}</select></div>
+    <div id="c_tl_holder"></div>
+    <div id="c_zone_holder"></div>
     <div class="scope">${fmt(rs.length)} active CCEs · ${P.scope}</div>
   </div>
   <div class="card">${table(["CCE","Zone","TL","TGT","FTD",P.curLabel,P.prevLabel,"Survey Pend","Assign Pend","Other Pend","Outstanding","Link Shared","Survey Comp","Link TAT","Survey TAT"],
@@ -745,8 +797,10 @@ function renderCCE(){
     ${totTgt?"":'<div class="footnote miss">No targets read — ensure the CCE sheet has a TGT column.</div>'}</div>`;
   mkChart("c_com",barCfg(topB.map(x=>x.c),topB.map(x=>x.mtd),true,PAL,true));
   mkChart("c_pipe",{type:"bar",data:{labels:topB.map(x=>x.c),datasets:[{label:"Survey Pend",data:topB.map(x=>x.surveyPending),backgroundColor:PAL[3]},{label:"Assign Pend",data:topB.map(x=>x.assignPending),backgroundColor:PAL[5]},{label:"Other",data:topB.map(x=>x.otherPending),backgroundColor:PAL[1]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
-  $("#c_tl").onchange=e=>{state.cceFilter.tl=e.target.value;renderCCE();};
-  $("#c_zone").onchange=e=>{state.cceFilter.zone=e.target.value;renderCCE();};
+  $("#c_tl_holder").innerHTML=mselHTML("c_tl","TL",tlOpts,f.tl);
+  wireMsel("c_tl",vals=>{state.cceFilter.tl=vals;renderCCE();});
+  $("#c_zone_holder").innerHTML=mselHTML("c_zone","Zone",zOpts,f.zone);
+  wireMsel("c_zone",vals=>{state.cceFilter.zone=vals;renderCCE();});
 }
 
 /* ===== TAB 6 — UPLOADING ===== */
@@ -870,14 +924,14 @@ function renderRO(){
 /* ===== TAB 9 — PERFORMANCE REPORT (dynamic Insurer -> RO -> Hub) ===== */
 function perfBucket(days){return days==null?"—":days<=5?"0-5 Days":days<=15?"6-15 Days":"Above 15 Days";}
 function perfScopeRows(){const f=state.perfFilter;
-  return DB.rows.filter(r=>{if(f.insurer&&r.insurer!==f.insurer)return false;if(f.ro&&r.roName!==f.ro)return false;if(f.hub&&r.branch!==f.hub)return false;return true;});}
+  return DB.rows.filter(r=>{if(f.insurer.length&&!f.insurer.includes(r.insurer))return false;if(f.ro.length&&!f.ro.includes(r.roName))return false;if(f.hub.length&&!f.hub.includes(r.branch))return false;return true;});}
 function renderPerf(){
   const f=state.perfFilter;
   const insurerNames=[...new Set(DB.rows.map(r=>r.insurer).filter(Boolean))].sort();
-  const roNames=[...new Set(DB.rows.filter(r=>!f.insurer||r.insurer===f.insurer).map(r=>r.roName).filter(Boolean))].sort();
-  if(f.ro&&!roNames.includes(f.ro))f.ro="";
-  const hubNames=[...new Set(DB.rows.filter(r=>(!f.insurer||r.insurer===f.insurer)&&(!f.ro||r.roName===f.ro)).map(r=>r.branch).filter(Boolean))].sort();
-  if(f.hub&&!hubNames.includes(f.hub))f.hub="";
+  const roNames=[...new Set(DB.rows.filter(r=>!f.insurer.length||f.insurer.includes(r.insurer)).map(r=>r.roName).filter(Boolean))].sort();
+  f.ro=f.ro.filter(v=>roNames.includes(v));
+  const hubNames=[...new Set(DB.rows.filter(r=>(!f.insurer.length||f.insurer.includes(r.insurer))&&(!f.ro.length||f.ro.includes(r.roName))).map(r=>r.branch).filter(Boolean))].sort();
+  f.hub=f.hub.filter(v=>hubNames.includes(v));
 
   const scoped=perfScopeRows();
   const P=computePeriod();
@@ -918,7 +972,7 @@ function renderPerf(){
   const osByVtype=vtypes.map(v=>osRows.filter(r=>r.vtype===v).length);
   const osBySeg=segments.map(s=>osRows.filter(r=>r.segment===s).length);
 
-  const scopeLabel=f.hub?f.hub:(f.ro?f.ro+" (all hubs)":(f.insurer?f.insurer+" (all ROs)":"All Insurers, ROs & Hubs"));
+  const scopeLabel=f.hub.length?(f.hub.length===1?f.hub[0]:f.hub.length+" hubs"):(f.ro.length?(f.ro.length===1?f.ro[0]+" (all hubs)":f.ro.length+" ROs (all hubs)"):(f.insurer.length?(f.insurer.length===1?f.insurer[0]+" (all ROs)":f.insurer.length+" insurers (all ROs)"):"All Insurers, ROs & Hubs"));
 
   // ===== New Summary — dynamic 6-month / 1-year window =====
   const rangeN=state.perfRange||6;
@@ -968,9 +1022,9 @@ function renderPerf(){
 
   $("#page-perf").innerHTML=`
   <div class="filterbar" style="position:static;margin:0 0 14px;top:auto">
-    <div class="f"><label>Insurer</label><select id="pf_insurer"><option value="">All Insurers</option>${insurerNames.map(i=>`<option ${i===f.insurer?"selected":""}>${i}</option>`).join("")}</select></div>
-    <div class="f"><label>RO Name</label><select id="pf_ro"><option value="">All ROs ${f.insurer?"(in "+f.insurer+")":""}</option>${roNames.map(r=>`<option ${r===f.ro?"selected":""}>${r}</option>`).join("")}</select></div>
-    <div class="f"><label>Hub</label><select id="pf_hub"><option value="">All Hubs ${f.ro?"(in "+f.ro+")":""}</option>${hubNames.map(h=>`<option ${h===f.hub?"selected":""}>${h}</option>`).join("")}</select></div>
+    <div id="pf_insurer_holder"></div>
+    <div id="pf_ro_holder"></div>
+    <div id="pf_hub_holder"></div>
     <div class="scope">Scope: <b>${scopeLabel}</b></div>
     <button class="reset" id="pf_reset">Reset</button>
   </div>
@@ -1094,10 +1148,13 @@ function renderPerf(){
 
   $("#ns_range").onchange=e=>{state.perfRange=+e.target.value;renderPerf();};
 
-  $("#pf_insurer").onchange=e=>{state.perfFilter.insurer=e.target.value;state.perfFilter.ro="";state.perfFilter.hub="";renderPerf();};
-  $("#pf_ro").onchange=e=>{state.perfFilter.ro=e.target.value;state.perfFilter.hub="";renderPerf();};
-  $("#pf_hub").onchange=e=>{state.perfFilter.hub=e.target.value;renderPerf();};
-  $("#pf_reset").onclick=()=>{state.perfFilter={insurer:"",ro:"",hub:""};renderPerf();};
+  $("#pf_insurer_holder").innerHTML=mselHTML("pf_insurer","Insurer",insurerNames,f.insurer);
+  wireMsel("pf_insurer",vals=>{state.perfFilter.insurer=vals;state.perfFilter.ro=[];state.perfFilter.hub=[];renderPerf();});
+  $("#pf_ro_holder").innerHTML=mselHTML("pf_ro","RO Name",roNames,f.ro);
+  wireMsel("pf_ro",vals=>{state.perfFilter.ro=vals;state.perfFilter.hub=[];renderPerf();});
+  $("#pf_hub_holder").innerHTML=mselHTML("pf_hub","Hub",hubNames,f.hub);
+  wireMsel("pf_hub",vals=>{state.perfFilter.hub=vals;renderPerf();});
+  $("#pf_reset").onclick=()=>{state.perfFilter={insurer:[],ro:[],hub:[]};renderPerf();};
 }
 
 /* ===== TAB 10 — STATE DENSITY PENETRATION MAP ===== */
@@ -1124,17 +1181,19 @@ function geoStateName(feature){const p=feature.properties||{};return p.st_nm||p.
 function densityMonthOptions(){ // all months present in DB (created dates), formatted
   return (DB.months||[]).map(mk=>({mk,label:mLabel(new Date(Math.floor(mk/12),mk%12,1))}));
 }
-function densityCountsForMonth(mk,filt){
+function densityCountsForMonth(mk,filt,days){
   const rows=DB.rows.filter(r=>{
     if(!r.created)return false; if(monKey(r.created)!==mk)return false;
-    if(filt.insurer&&r.insurer!==filt.insurer)return false;
-    if(filt.segment&&r.segment!==filt.segment)return false;
-    if(filt.vtype&&r.vtype!==filt.vtype)return false;
+    if(filt.insurer.length&&!filt.insurer.includes(r.insurer))return false;
+    if(filt.segment.length&&!filt.segment.includes(r.segment))return false;
+    if(filt.vtype.length&&!filt.vtype.includes(r.vtype))return false;
+    if(days&&days.length&&!days.includes(r.created.getDate()))return false;
     return true;});
   const m=new Map();
   rows.forEach(r=>{const k=normState(r.state);if(!k)return;m.set(k,(m.get(k)||0)+1);});
   return m;
 }
+function daysInMonthKey(mk){const y=Math.floor(mk/12),m=mk%12;return new Date(y,m+1,0).getDate();}
 const INSURER_COLORS={
   "New India":"#1F4EAA","United":"#4FC3F7","United India":"#4FC3F7","National":"#26A69A","Oriental":"#F57C00"
 };
@@ -1183,43 +1242,54 @@ async function renderDensity(){
   const months=densityMonthOptions();
   if(!state.densityM1&&months.length)state.densityM1=months[months.length-1].mk;
   if(!state.densityM2&&months.length)state.densityM2=months.length>1?months[months.length-2].mk:months[months.length-1].mk;
-  const baseHex=f.insurer?(INSURER_COLORS[f.insurer]||DENSITY_DEFAULT_COLOR):DENSITY_DEFAULT_COLOR;
+  const baseHex=f.insurer.length===1?(INSURER_COLORS[f.insurer[0]]||DENSITY_DEFAULT_COLOR):DENSITY_DEFAULT_COLOR;
+  const days1Opts=Array.from({length:daysInMonthKey(state.densityM1)},(_,i)=>String(i+1));
+  const days2Opts=Array.from({length:daysInMonthKey(state.densityM2)},(_,i)=>String(i+1));
+  state.densityD1=(state.densityD1||[]).filter(d=>days1Opts.includes(d));
+  state.densityD2=(state.densityD2||[]).filter(d=>days2Opts.includes(d));
 
   $("#page-density").innerHTML=`
   <div class="filterbar" style="position:static;margin:0 0 14px;top:auto">
-    <div class="f"><label>Insurer</label><select id="dm_insurer"><option value="">All</option>${insurerNames.map(i=>`<option ${i===f.insurer?"selected":""}>${i}</option>`).join("")}</select></div>
-    <div class="f"><label>Vehicle Type</label><select id="dm_vtype"><option value="">All</option>${vtypes.map(v=>`<option ${v===f.vtype?"selected":""}>${v}</option>`).join("")}</select></div>
-    <div class="f"><label>Segment</label><select id="dm_segment"><option value="">All</option>${segments.map(s=>`<option ${s===f.segment?"selected":""}>${s}</option>`).join("")}</select></div>
+    <div id="dm_insurer_holder"></div>
+    <div id="dm_vtype_holder"></div>
+    <div id="dm_segment_holder"></div>
     <button class="reset" id="dm_reset">Reset</button>
   </div>
 
   <div class="sectionhead"><span class="eyebrow">Density</span><h2>Intimation Penetration — compare two months</h2><div class="rule"></div></div>
   <div class="grid g2">
     <div class="card">
-      <div class="mapmonth"><select id="dm_month1">${months.map(m=>`<option value="${m.mk}" ${m.mk===state.densityM1?"selected":""}>${m.label}</option>`).join("")}</select></div>
+      <div class="mapmonth"><select id="dm_month1">${months.map(m=>`<option value="${m.mk}" ${m.mk===state.densityM1?"selected":""}>${m.label}</option>`).join("")}</select><div id="dm_day1_holder"></div></div>
       <div class="mapwrap" id="dm_wrap1"><div class="maptip" id="dm_tip1"></div><div id="dm_svgholder1" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--faint)">Loading map…</div></div>
       <div class="maplegend"><span>Low</span><div class="bar" style="background:linear-gradient(90deg,#eef1fa,${baseHex})"></div><span>High</span></div>
     </div>
     <div class="card">
-      <div class="mapmonth"><select id="dm_month2">${months.map(m=>`<option value="${m.mk}" ${m.mk===state.densityM2?"selected":""}>${m.label}</option>`).join("")}</select></div>
+      <div class="mapmonth"><select id="dm_month2">${months.map(m=>`<option value="${m.mk}" ${m.mk===state.densityM2?"selected":""}>${m.label}</option>`).join("")}</select><div id="dm_day2_holder"></div></div>
       <div class="mapwrap" id="dm_wrap2"><div class="maptip" id="dm_tip2"></div><div id="dm_svgholder2" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--faint)">Loading map…</div></div>
       <div class="maplegend"><span>Low</span><div class="bar" style="background:linear-gradient(90deg,#eef1fa,${baseHex})"></div><span>High</span></div>
     </div>
   </div>
-  <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month. Hover a state for the exact count. Map loads via CDN — requires an internet connection.</div>
+  <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month (and days, if chosen). Hover a state for the exact count. Map loads via CDN — requires an internet connection.</div>
   `;
 
-  $("#dm_insurer").onchange=e=>{state.densityFilter.insurer=e.target.value;renderDensity();};
-  $("#dm_vtype").onchange=e=>{state.densityFilter.vtype=e.target.value;renderDensity();};
-  $("#dm_segment").onchange=e=>{state.densityFilter.segment=e.target.value;renderDensity();};
-  $("#dm_reset").onclick=()=>{state.densityFilter={insurer:"",vtype:"",segment:""};renderDensity();};
-  $("#dm_month1").onchange=e=>{state.densityM1=+e.target.value;renderDensity();};
-  $("#dm_month2").onchange=e=>{state.densityM2=+e.target.value;renderDensity();};
+  $("#dm_insurer_holder").innerHTML=mselHTML("dm_insurer","Insurer",insurerNames,f.insurer);
+  wireMsel("dm_insurer",vals=>{state.densityFilter.insurer=vals;renderDensity();});
+  $("#dm_vtype_holder").innerHTML=mselHTML("dm_vtype","Vehicle Type",vtypes,f.vtype);
+  wireMsel("dm_vtype",vals=>{state.densityFilter.vtype=vals;renderDensity();});
+  $("#dm_segment_holder").innerHTML=mselHTML("dm_segment","Segment",segments,f.segment);
+  wireMsel("dm_segment",vals=>{state.densityFilter.segment=vals;renderDensity();});
+  $("#dm_reset").onclick=()=>{state.densityFilter={insurer:[],vtype:[],segment:[]};state.densityD1=[];state.densityD2=[];renderDensity();};
+  $("#dm_month1").onchange=e=>{state.densityM1=+e.target.value;state.densityD1=[];renderDensity();};
+  $("#dm_month2").onchange=e=>{state.densityM2=+e.target.value;state.densityD2=[];renderDensity();};
+  $("#dm_day1_holder").innerHTML=mselHTML("dm_day1","Day",days1Opts,state.densityD1);
+  wireMsel("dm_day1",vals=>{state.densityD1=vals;renderDensity();});
+  $("#dm_day2_holder").innerHTML=mselHTML("dm_day2","Day",days2Opts,state.densityD2);
+  wireMsel("dm_day2",vals=>{state.densityD2=vals;renderDensity();});
 
   try{
     const geo=await loadIndiaGeo();
-    const counts1=densityCountsForMonth(state.densityM1,f);
-    const counts2=densityCountsForMonth(state.densityM2,f);
+    const counts1=densityCountsForMonth(state.densityM1,f,state.densityD1.map(Number));
+    const counts2=densityCountsForMonth(state.densityM2,f,state.densityD2.map(Number));
     const m1=buildMapSVG(geo,counts1,"dm_svgholder1","dm_tip1",baseHex);
     const m2=buildMapSVG(geo,counts2,"dm_svgholder2","dm_tip2",baseHex);
     const h1=$("#dm_svgholder1"),h2=$("#dm_svgholder2");
@@ -1234,7 +1304,7 @@ async function renderDensity(){
 
 
 
-const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:"",zone:"",segment:"",vtype:""},osElapsed:5,subAFilter:{tl:"",zone:""},assFilter:{tl:"",zone:""},cceFilter:{tl:"",zone:""},perfFilter:{insurer:"",ro:"",hub:""},perfRange:6,densityFilter:{insurer:"",vtype:"",segment:""},densityM1:null,densityM2:null};
+const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:[],zone:[],segment:[],vtype:[]},osElapsed:5,subAFilter:{tl:[],zone:[]},assFilter:{tl:[],zone:[],segment:[]},cceFilter:{tl:[],zone:[]},perfFilter:{insurer:[],ro:[],hub:[]},perfRange:6,densityFilter:{insurer:[],vtype:[],segment:[]},densityM1:null,densityM2:null,densityD1:[],densityD2:[]};
 const RENDER={intimation:renderIntimation,submission:renderSubmission,outstanding:renderOutstanding,assessor:renderAssessor,cce:renderCCE,upload:renderUpload,hub:renderHub,ro:renderRO,perf:renderPerf,density:renderDensity};
 let current="intimation";
 function renderCurrent(){clearCharts();try{RENDER[current]();}catch(e){console.error(e);toast("Render error: "+e.message);}updateScope();}
@@ -1242,13 +1312,19 @@ function updateScope(){const P=computePeriod();$("#scopeNote").innerHTML=`Scope:
 function switchTab(t){current=t;$$("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));$$(".page").forEach(p=>p.classList.remove("active"));$("#page-"+t).classList.add("active");
   $("#filterbar").style.display=(["assessor","cce","upload","perf","density"].includes(t))?"none":"flex";renderCurrent();}
 $$("nav.tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-function fillFilters(){const opts=(sel,vals)=>{const el=$(sel),cur=el.value;el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option ${v===cur?"selected":""}>${v}</option>`).join("");};
-  opts("#flt_insurer",[...new Set(DB.rows.map(r=>r.insurer).filter(Boolean))].sort());
-  opts("#flt_zone",[...new Set(DB.rows.map(r=>r.zone).filter(Boolean))].sort());
-  opts("#flt_segment",["Retail","PB","Tie-up"].filter(s=>DB.rows.some(r=>r.segment===s)));
-  opts("#flt_vtype",[...new Set(DB.rows.map(r=>r.vtype).filter(v=>v&&v!=="—"))].sort());}
-["insurer","zone","segment","vtype"].forEach(k=>{$("#flt_"+k).onchange=e=>{state.flt[k]=e.target.value;renderCurrent();};});
-$("#fltReset").onclick=()=>{state.flt={insurer:"",zone:"",segment:"",vtype:""};["insurer","zone","segment","vtype"].forEach(k=>$("#flt_"+k).value="");renderCurrent();};
+function fillFilters(){
+  const defs=[
+    {k:"insurer",label:"Insurer",vals:[...new Set(DB.rows.map(r=>r.insurer).filter(Boolean))].sort()},
+    {k:"zone",label:"Zone",vals:[...new Set(DB.rows.map(r=>r.zone).filter(Boolean))].sort()},
+    {k:"segment",label:"Segment",vals:["Retail","PB","Tie-up"].filter(s=>DB.rows.some(r=>r.segment===s))},
+    {k:"vtype",label:"Vehicle Type",vals:[...new Set(DB.rows.map(r=>r.vtype).filter(v=>v&&v!=="—"))].sort()}
+  ];
+  defs.forEach(d=>{
+    $("#flt_"+d.k+"_holder").innerHTML=mselHTML("flt_"+d.k,d.label,d.vals,state.flt[d.k]);
+    wireMsel("flt_"+d.k,vals=>{state.flt[d.k]=vals;$("#flt_"+d.k+"_btn .lbl").textContent=vals.length===0?"All":(vals.length===1?vals[0]:vals.length+" selected");$("#flt_"+d.k+"_btn").classList.toggle("active",vals.length>0);renderCurrent();});
+  });
+}
+$("#fltReset").onclick=()=>{state.flt={insurer:[],zone:[],segment:[],vtype:[]};fillFilters();renderCurrent();};
 $("#activeN").onchange=()=>{state.activeN=+$("#activeN").value;if(current==="intimation")renderCurrent();};
 $("#asOf").onchange=()=>{const d=parseDate($("#asOf").value);if(d){state.asOf=d;syncMonthSel();renderCurrent();}};
 $("#monthSel").onchange=()=>{const mk=+$("#monthSel").value;const y=Math.floor(mk/12),mo=mk%12;const last=new Date(y,mo+1,0);const end=(DB.maxDate<last&&DB.maxDate>=new Date(y,mo,1))?DB.maxDate:last;state.asOf=end;$("#asOf").value=dayKey(end);renderCurrent();};
