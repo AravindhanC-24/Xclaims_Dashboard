@@ -131,6 +131,12 @@
   .delta-up{color:var(--good); font-weight:800} .delta-dn{color:var(--bad); font-weight:800}
   .badge{padding:2px 8px;border-radius:7px;font-size:10px;font-weight:800}
   .b-ap{background:var(--p7s);color:#15803d} .b-un{background:var(--p4s);color:#b45309}
+  .b-risk{background:var(--p3s);color:#d8442f} .b-watch{background:var(--p4s);color:#b45309} .b-good{background:var(--p7s);color:#15803d}
+  .insight-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--sh-sm)}
+  .insight-card h4{margin:0 0 8px;font-size:13.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .insight-card ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--ink-soft)}
+  .insight-card ul li{margin-bottom:3px}
+  .insight-card .crit{font-size:10px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--line2)}
 
   .empty{text-align:center; padding:66px 20px; color:var(--muted)}
   .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--p1);margin:22px auto 0;animation:spin .8s linear infinite}
@@ -167,6 +173,7 @@
   <button data-tab="ro"><span class="n">08</span>RO</button>
   <button data-tab="perf"><span class="n">09</span>Performance Report</button>
   <button data-tab="density"><span class="n">10</span>Intimation Penetration</button>
+  <button data-tab="insights"><span class="n">11</span>Insights</button>
 </nav>
 
 <div class="filterbar" id="filterbar" style="display:none">
@@ -199,6 +206,7 @@
   <div id="page-ro" class="page"></div>
   <div id="page-perf" class="page"></div>
   <div id="page-density" class="page"></div>
+  <div id="page-insights" class="page"></div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -278,6 +286,10 @@ function businessMinutes(start,end){if(!start||!end)return null;if(end<=start)re
 const minsToHrs=m=>m==null?"–":Math.floor(m/60)+"h "+Math.round(m%60)+"m";
 const minsToDays=m=>m==null?"–":fmt1(m/W_MIN);
 function avg(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((p,c)=>p+c,0)/v.length:null;}
+function quantile(arr,q){const v=arr.filter(x=>x!=null&&!isNaN(x)).slice().sort((a,b)=>a-b);if(!v.length)return null;
+  const pos=(v.length-1)*q,base=Math.floor(pos),rest=pos-base;
+  return v[base+1]!==undefined?v[base]+rest*(v[base+1]-v[base]):v[base];}
+function median(arr){return quantile(arr,.5);}
 function tally(rows,fn){const m=new Map();for(const r of rows){const k=fn(r);if(k==null||k==="")continue;m.set(k,(m.get(k)||0)+1);}return m;}
 function groupBy(rows,fn){const m=new Map();for(const r of rows){const k=fn(r);if(k==null||k==="")continue;let a=m.get(k);if(!a){a=[];m.set(k,a);}a.push(r);}return m;}
 function topN(map,n){return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n);}
@@ -1304,13 +1316,191 @@ async function renderDensity(){
 
 
 
+/* ===== TAB 11 — INSIGHTS (cross-cutting performance analysis) ===== */
+// Generic helper: given entities with a numeric metric, classify each vs its peer group using quartiles.
+// dir="low" => lower value is better (e.g. TAT, aging); dir="high" => higher value is better (e.g. volume, % achieved)
+function rankByQuartile(entities,metricFn,dir){
+  const vals=entities.map(metricFn).filter(v=>v!=null&&!isNaN(v));
+  if(vals.length<4)return entities.map(e=>({...e,_q:null,_flag:"insufficient"}));
+  const q1=quantile(vals,.25),q3=quantile(vals,.75),med=quantile(vals,.5);
+  return entities.map(e=>{const v=metricFn(e);if(v==null||isNaN(v))return {...e,_v:v,_q:null,_flag:"insufficient"};
+    let flag;
+    if(dir==="low"){flag=v<=q1?"good":(v>=q3?"risk":"watch");}
+    else{flag=v>=q3?"good":(v<=q1?"risk":"watch");}
+    return {...e,_v:v,_med:med,_q1:q1,_q3:q3,_flag:flag};});
+}
+function flagBadge(f){return f==="good"?'<span class="badge b-good">Top quartile</span>':f==="risk"?'<span class="badge b-risk">Bottom quartile</span>':f==="watch"?'<span class="badge b-watch">Mid-pack</span>':'<span class="badge" style="background:var(--line2);color:var(--muted)">Limited data</span>';}
+function insightBlock(title,eyebrow,bullets,riskList,goodList){
+  return `<div class="insight-card">
+    <h4>${title}</h4>
+    <ul>${bullets.map(b=>`<li>${b}</li>`).join("")}</ul>
+    ${goodList&&goodList.length?`<div style="margin-top:10px"><b style="font-size:11.5px;color:#15803d">Best performing</b><ul>${goodList.map(b=>`<li>${b}</li>`).join("")}</ul></div>`:""}
+    ${riskList&&riskList.length?`<div style="margin-top:10px"><b style="font-size:11.5px;color:#d8442f">Needs attention</b><ul>${riskList.map(b=>`<li>${b}</li>`).join("")}</ul></div>`:""}
+  </div>`;
+}
+
+function renderInsights(){
+  if(!DB)return;
+  const P=computePeriod();
+  const all=DB.rows;
+  const curRows=all.filter(r=>r.created&&P.inCur(r.created));
+  const subRows=all.filter(r=>r.finalD&&P.inCur(r.finalD));
+  const osRows=all.filter(r=>r.status==="Outstanding").map(r=>({...r,age:r.created?Math.round((state.asOf-r.created)/86400000):null}));
+
+  /* ---------- 1. INTIMATION ---------- */
+  const intimByZone=groupBy(curRows,r=>r.zone||"—");
+  const zoneIntim=[...intimByZone.entries()].map(([zone,arr])=>({name:zone,n:arr.length}));
+  const zRanked=rankByQuartile(zoneIntim,e=>e.n,"high").sort((a,b)=>b.n-a.n);
+  const intimByInsurer=groupBy(curRows,r=>r.insurer||"—");
+  const topInsurer=[...intimByInsurer.entries()].sort((a,b)=>b[1].length-a[1].length)[0];
+  const cancelRate=curRows.length?curRows.filter(r=>r.status==="Case Cancelled").length/curRows.length:null;
+
+  /* ---------- 2. SUBMISSION ---------- */
+  const subByZone=groupBy(subRows,r=>r.zone||"—");
+  const subRanked=rankByQuartile([...subByZone.entries()].map(([z,arr])=>({name:z,n:arr.length,tat:avg(arr.map(r=>r.subTAT))})),e=>e.tat,"low");
+  const overallSubTAT=avg(subRows.map(r=>r.subTAT));
+  const subRate=curRows.length?subRows.length/curRows.length:null;
+
+  /* ---------- 3. OUTSTANDING ---------- */
+  const osByZone=groupBy(osRows,r=>r.zone||"—");
+  const osRanked=rankByQuartile([...osByZone.entries()].map(([z,arr])=>({name:z,n:arr.length,age:avg(arr.map(r=>r.age)),above15:arr.filter(r=>r.age!=null&&r.age>15).length})),e=>e.age,"low");
+  const osAvgAge=avg(osRows.map(r=>r.age));
+  const osAbove15Pct=osRows.length?osRows.filter(r=>r.age!=null&&r.age>15).length/osRows.length:null;
+
+  /* ---------- 4. ASSESSOR ---------- */
+  const assAll=assessorRows(P,all).filter(x=>x.active);
+  const assEligible=assAll.filter(x=>x.sub>=5); // lower bar here since this is dashboard-wide observation, not the 80+ Top3/Bottom3 eligibility
+  const assTATRanked=rankByQuartile(assEligible.map(x=>({name:x.a,zone:x.zone,tl:x.tl,v:x.overallTAT,sub:x.sub,os:x.os})),e=>e.v,"low");
+  const assVolRanked=rankByQuartile(assEligible.map(x=>({name:x.a,zone:x.zone,tl:x.tl,v:x.sub})),e=>e.v,"high");
+  const assRiskTAT=assTATRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
+  const assGoodTAT=assTATRanked.filter(x=>x._flag==="good").sort((a,b)=>a._v-b._v);
+  const assLowVol=assVolRanked.filter(x=>x._flag==="risk").sort((a,b)=>a._v-b._v);
+
+  /* ---------- 5. CCE ---------- */
+  const cceAll=cceRows(P,all).filter(x=>x.active);
+  const cceEligible=cceAll.filter(x=>x.linkShared>=5);
+  const cceTATRanked=rankByQuartile(cceEligible.map(x=>({name:x.c,zone:x.zone,tl:x.tl,v:x.linkTAT})),e=>e.v,"low");
+  const cceVolRanked=rankByQuartile(cceEligible.map(x=>({name:x.c,zone:x.zone,tl:x.tl,v:x.mtd})),e=>e.v,"high");
+  const cceRisk=cceTATRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
+  const cceGood=cceTATRanked.filter(x=>x._flag==="good").sort((a,b)=>a._v-b._v);
+
+  /* ---------- 6. UPLOADING TEAM ---------- */
+  const upl=DB.upl||[];
+  const uplCur=upl.filter(u=>u.date&&P.inCur(u.date));
+  const uplByName=groupBy(uplCur,u=>u.name||"—");
+  const uplRows=[...uplByName.entries()].map(([nm,arr])=>{const m=arr.filter(u=>u.tatDays!=null);return {name:nm,n:arr.length,tat:avg(m.map(u=>u.tatDays))};}).filter(x=>x.n>=3);
+  const uplRanked=rankByQuartile(uplRows,e=>e.tat,"low");
+  const uplRisk=uplRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
+  const uplGood=uplRanked.filter(x=>x._flag==="good").sort((a,b)=>a._v-b._v);
+  const uplUnmatchedPct=uplCur.length?uplCur.filter(u=>!u.matched).length/uplCur.length:null;
+
+  /* ---------- 7. RO PERFORMANCE ---------- */
+  const roAgg=new Map();
+  for(const r of all){const k=r.roKey;if(!k)continue;let a=roAgg.get(k);if(!a){a={mtd:0,prev:0,os:0,age:[]};roAgg.set(k,a);}
+    if(r.created&&P.inCur(r.created))a.mtd++; if(r.created&&P.inPrev(r.created))a.prev++;
+    if(r.status==="Outstanding"){a.os++;const age=r.created?Math.round((state.asOf-r.created)/86400000):null;if(age!=null)a.age.push(age);}}
+  const metaByRO=new Map(); DB.hubRows.forEach(o=>{if(o.roKey){if(!metaByRO.has(o.roKey))metaByRO.set(o.roKey,{...o,target:0});metaByRO.get(o.roKey).target+=o.target||0;}});
+  const roRows=[...roAgg.entries()].map(([k,a])=>{const i=k.lastIndexOf("|");const roName=i<0?k:k.slice(0,i);const m=metaByRO.get(k)||{};
+    return {name:roName,mtd:a.mtd,prev:a.prev,os:a.os,age:avg(a.age),tgt:m.target||0,com:m.target?a.mtd/m.target:null,grown:a.mtd-a.prev};}).filter(x=>x.mtd||x.os);
+  const roVolRanked=rankByQuartile(roRows,e=>e.mtd,"high");
+  const roAgeRanked=rankByQuartile(roRows.filter(x=>x.os>0),e=>e.age,"low");
+  const roRisk=roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
+  const roDeclining=roRows.filter(x=>x.prev>0&&x.mtd<x.prev*0.7).sort((a,b)=>(a.mtd/a.prev)-(b.mtd/b.prev));
+
+  /* ---------- 8. HUB PERFORMANCE ---------- */
+  const hubAgg=new Map();
+  for(const r of all){const b=r.branch;if(!b)continue;let a=hubAgg.get(b);if(!a){a={mtd:0,prev:0,os:0,age:[]};hubAgg.set(b,a);}
+    if(r.created&&P.inCur(r.created))a.mtd++; if(r.created&&P.inPrev(r.created))a.prev++;
+    if(r.status==="Outstanding"){a.os++;const age=r.created?Math.round((state.asOf-r.created)/86400000):null;if(age!=null)a.age.push(age);}}
+  const metaByOffice=new Map(); DB.hubRows.forEach(o=>{if(o.office&&!metaByOffice.has(o.office))metaByOffice.set(o.office,o);});
+  const hubRowsArr=[...hubAgg.entries()].map(([off,a])=>{const m=metaByOffice.get(off)||{};
+    return {name:off,zone:m.zone||"",insurer:m.insurer||"",mtd:a.mtd,prev:a.prev,os:a.os,age:avg(a.age),grown:a.mtd-a.prev};}).filter(x=>x.mtd||x.os);
+  const hubVolRanked=rankByQuartile(hubRowsArr,e=>e.mtd,"high");
+  const hubAgeRanked=rankByQuartile(hubRowsArr.filter(x=>x.os>0),e=>e.age,"low");
+  const hubRisk=hubAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
+  const hubDeclining=hubRowsArr.filter(x=>x.prev>0&&x.mtd<x.prev*0.7).sort((a,b)=>(a.mtd/a.prev)-(b.mtd/b.prev));
+
+  $("#page-insights").innerHTML=`
+  <div class="kpis">
+    ${kpi("Scope",P.scope,"as of "+dayKey(state.asOf),"c1")}
+    ${kpi("Intimation",fmt(curRows.length),pct(cancelRate)+" cancelled","c2")}
+    ${kpi("Submission Rate",pct(subRate),fmt1(overallSubTAT)+"d avg TAT","c3")}
+    ${kpi("Outstanding",fmt(osRows.length),fmt1(osAvgAge)+"d avg age","c4")}
+    ${kpi("Above 15d OS",pct(osAbove15Pct),"of all outstanding","c5")}
+  </div>
+  <div class="footnote" style="margin:-4px 22px 14px">Performance flags below compare each person/team against the <b>median and quartiles of their own peer group</b> in this scope — not a fixed external target. "Bottom quartile" means among the slowest/lowest 25% of comparable peers this period, not necessarily a problem in isolation; use it to prioritize where to look, not as a verdict.</div>
+
+  <div class="sectionhead"><span class="eyebrow">1 · Intimation</span><h2>Volume, mix &amp; zone distribution</h2><div class="rule"></div></div>
+  ${insightBlock("Intimation overview","",
+    [`${fmt(curRows.length)} cases intimated in ${P.curLabel}, led by <b>${topInsurer?topInsurer[0]:"—"}</b> (${topInsurer?fmt(topInsurer[1].length):0} cases).`,
+     `Case cancellation rate is <b>${pct(cancelRate)}</b> of all intimations this period.`,
+     `Zone spread: <b>${zRanked[0]?.name||"—"}</b> leads with ${fmt(zRanked[0]?.n||0)}; <b>${zRanked[zRanked.length-1]?.name||"—"}</b> trails with ${fmt(zRanked[zRanked.length-1]?.n||0)}.`],
+    zRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt(z.n)} cases, bottom quartile by volume this period.`),
+    zRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt(z.n)} cases, top quartile by volume.`))}
+
+  <div class="sectionhead"><span class="eyebrow">2 · Submission</span><h2>Conversion &amp; turnaround</h2><div class="rule"></div></div>
+  ${insightBlock("Submission overview","",
+    [`${pct(subRate)} of intimated cases were submitted within ${P.curLabel}; overall TAT averages <b>${fmt1(overallSubTAT)} days</b> (created → final report).`,
+     `Zone-wise TAT spread ranges from <b>${fmt1(quantile(subRanked.map(z=>z.tat).filter(v=>v!=null),0))||"—"}d</b> (fastest) to slower zones flagged below.`],
+    subRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt1(z.tat)}d avg TAT, slowest quartile.`),
+    subRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt1(z.tat)}d avg TAT, fastest quartile.`))}
+
+  <div class="sectionhead"><span class="eyebrow">3 · Outstanding</span><h2>Aging &amp; SLA pressure by zone</h2><div class="rule"></div></div>
+  ${insightBlock("Outstanding overview","",
+    [`${fmt(osRows.length)} cases open as of ${dayKey(state.asOf)}, averaging <b>${fmt1(osAvgAge)} days</b> aging; ${pct(osAbove15Pct)} are above 15 days.`],
+    osRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt(z.n)} OS, ${fmt1(z.age)}d avg age (${fmt(z.above15)} above 15d) — oldest-aging quartile.`),
+    osRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt(z.n)} OS, ${fmt1(z.age)}d avg age — freshest quartile.`))}
+
+  <div class="sectionhead"><span class="eyebrow">4 · Assessor</span><h2>Turnaround &amp; workload distribution</h2><div class="rule"></div></div>
+  ${insightBlock(`Assessor performance — ${fmt(assEligible.length)} assessors with 5+ submissions this period`,"",
+    [`Median assessor TAT this period: <b>${fmt1(median(assEligible.map(x=>x.overallTAT)))} days</b>. Workload (submissions) ranges widely — see flagged names below for both extremes.`,
+     `Assessors below the 5-submission bar (low activity, excluded from ranking): <b>${fmt(assAll.length-assEligible.length)}</b>.`],
+    assRiskTAT.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${fmt1(x._v)}d TAT on ${fmt(x.sub)} submissions, OS ${fmt(x.os)} — slowest quartile.`),
+    assGoodTAT.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${fmt1(x._v)}d TAT on ${fmt(x.sub)} submissions — fastest quartile.`))}
+  ${assLowVol.length?insightBlock("Underutilization watch — low submission volume","",
+    [`${fmt(assLowVol.length)} assessor(s) fall in the bottom quartile by submission count this period, despite meeting the 5+ minimum — worth checking for case-allocation gaps or capacity issues.`],
+    assLowVol.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — only ${fmt(x._v)} submissions this period.`)):""}
+
+  <div class="sectionhead"><span class="eyebrow">5 · CCE</span><h2>Survey link &amp; handling turnaround</h2><div class="rule"></div></div>
+  ${insightBlock(`CCE performance — ${fmt(cceEligible.length)} CCEs with 5+ links shared this period`,"",
+    [`Median CCE link-share TAT: <b>${minsToHrs(median(cceEligible.map(x=>x.linkTAT)))}</b>.`],
+    cceRisk.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${minsToHrs(x._v)} link TAT — slowest quartile.`),
+    cceGood.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${minsToHrs(x._v)} link TAT — fastest quartile.`))}
+
+  <div class="sectionhead"><span class="eyebrow">6 · Uploading Team</span><h2>FSR→upload turnaround</h2><div class="rule"></div></div>
+  ${insightBlock(`Uploading team — ${fmt(uplRows.length)} uploaders with 3+ uploads this period`,"",
+    [`Median uploader TAT: <b>${fmt1(median(uplRows.map(x=>x.tat)))} days</b>. Unmatched-to-Base rate this period: <b>${pct(uplUnmatchedPct)}</b> (cases uploaded but not traceable to a Base record — a data-quality flag, not a person metric).`],
+    uplRisk.slice(0,8).map(x=>`${x.name} — ${fmt1(x._v)}d avg TAT on ${fmt(x.n)} uploads — slowest quartile.`),
+    uplGood.slice(0,8).map(x=>`${x.name} — ${fmt1(x._v)}d avg TAT on ${fmt(x.n)} uploads — fastest quartile.`))}
+
+  <div class="sectionhead"><span class="eyebrow">7 · RO Performance</span><h2>Volume, growth &amp; aging</h2><div class="rule"></div></div>
+  ${insightBlock("RO performance","",
+    [`${fmt(roRows.length)} active ROs this period. ${roDeclining.length?fmt(roDeclining.length)+" RO(s) show a 30%+ month-on-month drop in intimation volume — flagged below.":"No RO shows a sharp month-on-month volume drop this period."}`],
+    [...roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} — ${fmt1(x.age)}d avg OS age on ${fmt(x.os)} open cases — oldest-aging quartile.`),
+     ...roDeclining.slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last period (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
+    roVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} intimations, top quartile by volume${x.tgt?`, ${pct(x.com)} of target`:""}.`))}
+
+  <div class="sectionhead"><span class="eyebrow">8 · Hub Performance</span><h2>Volume, growth &amp; aging</h2><div class="rule"></div></div>
+  ${insightBlock("Hub performance","",
+    [`${fmt(hubRowsArr.length)} active hubs this period. ${hubDeclining.length?fmt(hubDeclining.length)+" hub(s) show a 30%+ month-on-month drop in intimation volume — flagged below.":"No hub shows a sharp month-on-month volume drop this period."}`],
+    [...hubAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt1(x.age)}d avg OS age on ${fmt(x.os)} open cases — oldest-aging quartile.`),
+     ...hubDeclining.slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last period (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
+    hubVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} intimations, top quartile by volume.`))}
+
+  <div class="footnote" style="margin:6px 22px 18px">
+    <b>Methodology:</b> "Top/Bottom quartile" splits each peer group (assessors, CCEs, ROs, hubs, zones, uploaders) into four equal parts by the relevant metric for the current scope. Top quartile = best 25% of peers; Bottom quartile = worst 25%. A minimum activity threshold (5 submissions for assessors/CCEs, 3 uploads for uploaders) excludes anyone with too little data to compare fairly. "Declining" RO/Hub volume uses a 30%+ month-on-month drop as the trigger — a common operations heuristic, not a fixed external standard, since no public benchmark applies to this internal allocation→intimation→submission workflow. All comparisons are relative to this dataset's own current distribution, not an industry-wide number.
+  </div>
+  `;
+}
+
+
 const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:[],zone:[],segment:[],vtype:[]},osElapsed:5,subAFilter:{tl:[],zone:[]},assFilter:{tl:[],zone:[],segment:[]},cceFilter:{tl:[],zone:[]},perfFilter:{insurer:[],ro:[],hub:[]},perfRange:6,densityFilter:{insurer:[],vtype:[],segment:[]},densityM1:null,densityM2:null,densityD1:[],densityD2:[]};
-const RENDER={intimation:renderIntimation,submission:renderSubmission,outstanding:renderOutstanding,assessor:renderAssessor,cce:renderCCE,upload:renderUpload,hub:renderHub,ro:renderRO,perf:renderPerf,density:renderDensity};
+const RENDER={intimation:renderIntimation,submission:renderSubmission,outstanding:renderOutstanding,assessor:renderAssessor,cce:renderCCE,upload:renderUpload,hub:renderHub,ro:renderRO,perf:renderPerf,density:renderDensity,insights:renderInsights};
 let current="intimation";
 function renderCurrent(){clearCharts();try{RENDER[current]();}catch(e){console.error(e);toast("Render error: "+e.message);}updateScope();}
 function updateScope(){const P=computePeriod();$("#scopeNote").innerHTML=`Scope: <b>${P.scope}</b>`;}
 function switchTab(t){current=t;$$("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));$$(".page").forEach(p=>p.classList.remove("active"));$("#page-"+t).classList.add("active");
-  $("#filterbar").style.display=(["assessor","cce","upload","perf","density"].includes(t))?"none":"flex";renderCurrent();}
+  $("#filterbar").style.display=(["assessor","cce","upload","perf","density","insights"].includes(t))?"none":"flex";renderCurrent();}
 $$("nav.tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 function fillFilters(){
   const defs=[
