@@ -104,6 +104,16 @@
   .maplegend{display:flex; align-items:center; gap:8px; font-size:10.5px; color:var(--muted); margin-top:8px; padding:0 4px}
   .maplegend .bar{flex:1; height:10px; border-radius:5px; background:linear-gradient(90deg,#eef1fa,var(--p1))}
   .maptip{position:absolute; pointer-events:none; background:var(--ink); color:#fff; font-size:11px; padding:5px 9px; border-radius:7px; opacity:0; transition:opacity .1s; z-index:5; white-space:nowrap; font-weight:600}
+  .mapstate{cursor:pointer}
+  .dmodal{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center}
+  .dmodal-backdrop{position:absolute; inset:0; background:rgba(20,24,40,.55)}
+  .dmodal-box{position:relative; background:var(--card); border-radius:16px; width:min(720px,92vw); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(20,24,40,.35); padding:0}
+  .dmodal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--card); border-radius:16px 16px 0 0}
+  .dmodal-head h3{margin:0; font-size:16px; font-weight:800; color:var(--ink)}
+  .dmodal-close{border:none; background:var(--bg2); color:var(--ink); width:30px; height:30px; border-radius:9px; font-size:14px; cursor:pointer}
+  .dmodal-body{padding:18px 20px 22px}
+  .dmodal-body .mapwrap{min-height:380px}
+  .dmodal-body .mapwrap svg{height:340px}
   .mapmonth{display:flex; align-items:center; gap:8px; margin-bottom:8px}
   .mapmonth label{font-size:9.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:800}
   .mapmonth select{border:1px solid var(--line); border-radius:9px; padding:6px 9px; font:inherit; font-size:12.5px; background:#fff; color:var(--ink)}
@@ -209,6 +219,16 @@
   <div id="page-insights" class="page"></div>
 </main>
 <div class="toast" id="toast"></div>
+<div class="dmodal" id="dmodal" style="display:none">
+  <div class="dmodal-backdrop" id="dmodalBackdrop"></div>
+  <div class="dmodal-box">
+    <div class="dmodal-head">
+      <h3 id="dmodalTitle">State</h3>
+      <button class="dmodal-close" id="dmodalClose">✕</button>
+    </div>
+    <div class="dmodal-body" id="dmodalBody"></div>
+  </div>
+</div>
 
 <script>
 /* ===== PART 1 — utilities ===== */
@@ -336,7 +356,7 @@ function buildModel(wb){
   const hubA=get("Hub"); const hub={}; const hubRows=[];
   if(hubA){let hr=0;for(let i=0;i<Math.min(hubA.length,12);i++){const row=(hubA[i]||[]).map(x=>String(x||"").trim().toLowerCase());if(row.includes("internal code")||row.includes("zone")){hr=i;break;}}
     for(let i=hr+1;i<hubA.length;i++){const r=hubA[i];if(!r||r[0]===""||r[0]==null)continue;
-      const o={code:val(r[0]),zone:val(r[1]),classification:val(r[2]),insurer:val(r[3]),officeCode:val(r[4]),office:val(r[5]),roCode:val(r[6]),roName:val(r[7]),responsible:val(r[8]),state:val(r[9]),target:+String(r[10]).replace(/[^0-9.\-]/g,"")||0,approved:val(r[11])};
+      const o={code:val(r[0]),zone:val(r[1]),classification:val(r[2]),insurer:val(r[3]),officeCode:val(r[4]),office:val(r[5]),roCode:val(r[6]),roName:val(r[7]),responsible:val(r[8]),state:val(r[9]),city:val(r[10]),target:+String(r[11]).replace(/[^0-9.\-]/g,"")||0,approved:val(r[12])};
       o.roKey=o.roName?o.roName+"|"+o.insurer:""; hub[o.code]=o;hubRows.push(o);}}
   // people
   const aMeta=readPeople(get("Assessor")), cMeta=readPeople(get("CCE"));
@@ -369,7 +389,7 @@ function buildModel(wb){
     const settle=+r[C.settle]||0, estimate=+r[C.estimate]||0, setRatio=estimate>0?settle/estimate:null;
     const cce=val(r[C.cce]), assessor=val(r[C.assessor]);
     rows.push({caseCode:r[C.case],claimStatus:val(r[C.status]),status,insurer,product,segment,zone,
-      branch:h.office||"",roName:h.roName||"",roKey:h.roName?h.roName+"|"+insurer:"",state:h.state||"",responsible:h.responsible||"",classification:h.classification||product,
+      branch:h.office||"",roName:h.roName||"",roKey:h.roName?h.roName+"|"+insurer:"",state:h.state||"",city:h.city||"",responsible:h.responsible||"",classification:h.classification||product,
       make:val(r[C.make])||"—",model:val(r[C.model])||"—",vtype:val(r[C.vtype])||"—",assessor,cce,
       created,finalD,inspDepD,inspCompD,settle,estimate,setRatio,subTAT,vro,link,comp,allocFSR,invFSR,intCode:ic,
       nextAction:parseDate(r[C.nextAction]),remarkUpd:parseDate(String(r[C.remarkUpd]||"").slice(0,11)),
@@ -872,7 +892,7 @@ function renderHub(){
   const metaByOffice=new Map(); DB.hubRows.forEach(o=>{if(o.office&&!metaByOffice.has(o.office))metaByOffice.set(o.office,o);});
   const offices=new Set([...metaByOffice.keys(),...agg.keys()]);
   const rs=[...offices].filter(Boolean).map(off=>{const m=metaByOffice.get(off)||{};const a=agg.get(off)||{intim:0,sub:0,os:0};const t=tgt[off]||0;
-    return {off,zone:m.zone||"",insurer:m.insurer||"",cls:m.classification||"",ro:m.roName||"",state:m.state||"",approved:m.approved||"",t,intim:a.intim,sub:a.sub,os:a.os,com:t?a.sub/t:null};}).filter(x=>x.intim||x.sub||x.os||x.t).sort((a,b)=>b.intim-a.intim);
+    return {off,zone:m.zone||"",insurer:m.insurer||"",cls:m.classification||"",ro:m.roName||"",state:m.state||"",city:m.city||"",approved:m.approved||"",t,intim:a.intim,sub:a.sub,os:a.os,com:t?a.sub/t:null};}).filter(x=>x.intim||x.sub||x.os||x.t).sort((a,b)=>b.intim-a.intim);
   const totT=rs.reduce((s,x)=>s+x.t,0),totSub=rs.reduce((s,x)=>s+x.sub,0),totIntim=rs.reduce((s,x)=>s+x.intim,0),totOS=rs.reduce((s,x)=>s+x.os,0);
   const top=rs.slice(0,12);
   $("#page-hub").innerHTML=`
@@ -886,8 +906,8 @@ function renderHub(){
   <div class="sectionhead t2"><span class="eyebrow">Distribution</span><h2>Zone intimation · top intimation hubs</h2><div class="rule"></div></div>
   <div class="grid g2">${card("Zone-wise intimation",cv("h_zone"))}${card("Top Intimation Hubs",cv("h_tgt"))}</div>
   <div class="sectionhead t4"><span class="eyebrow">Master</span><h2>Hub details</h2><div class="rule"></div></div>
-  <div class="card">${table(["Hub (Office)","Insurer","Zone","Classification","RO","State","Approved","Target",P.curLabel+" Intim",P.curLabel+" Sub","OS","Com %"],
-    rs.map(x=>`<tr><td>${x.off}</td><td>${x.insurer}</td><td>${x.zone}</td><td>${x.cls}</td><td>${x.ro}</td><td>${x.state}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td class="num">${x.t||"–"}</td><td class="num">${x.intim}</td><td class="num">${x.sub}</td><td class="num">${x.os}</td><td class="num">${x.com==null?"–":pct(x.com)}</td></tr>`).join(""),{x:true})}</div>`;
+  <div class="card">${table(["Hub (Office)","Insurer","Zone","Classification","RO","State","City","Approved","Target",P.curLabel+" Intim",P.curLabel+" Sub","OS","Com %"],
+    rs.map(x=>`<tr><td>${x.off}</td><td>${x.insurer}</td><td>${x.zone}</td><td>${x.cls}</td><td>${x.ro}</td><td>${x.state}</td><td>${x.city||"–"}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td class="num">${x.t||"–"}</td><td class="num">${x.intim}</td><td class="num">${x.sub}</td><td class="num">${x.os}</td><td class="num">${x.com==null?"–":pct(x.com)}</td></tr>`).join(""),{x:true})}</div>`;
   mkChart("h_zone",barCfg([...zoneMix.keys()],[...zoneMix.values()],true,PAL,true));
   mkChart("h_tgt",barCfg(top.map(x=>`${x.insurer||"—"} · ${x.off}`),top.map(x=>x.intim),true,PAL,true));
 }
@@ -1171,6 +1191,37 @@ function renderPerf(){
 
 /* ===== TAB 10 — STATE DENSITY PENETRATION MAP ===== */
 const INDIA_GEOJSON_URL="https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@ef25ebc/geojson/india.geojson";
+const DISTRICT_GEO_CACHE={};
+function stateSlug(name){
+  const overrides={"andaman and nicobar islands":"andaman-and-nicobar-islands","dadra and nagar haveli and daman and diu":"dnh-and-dd","jammu and kashmir":"jammu-and-kashmir"};
+  const n=normState(name);
+  if(overrides[n])return overrides[n];
+  return n.replace(/&/g,"and").replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-");
+}
+function districtGeoUrl(stateName){return `https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@ef25ebc/geojson/states/${stateSlug(stateName)}.geojson`;}
+function loadDistrictGeo(stateName){
+  const slug=stateSlug(stateName);
+  if(DISTRICT_GEO_CACHE[slug])return DISTRICT_GEO_CACHE[slug];
+  const p=fetch(districtGeoUrl(stateName)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).catch(err=>{delete DISTRICT_GEO_CACHE[slug];throw err;});
+  DISTRICT_GEO_CACHE[slug]=p; return p;
+}
+function geoDistrictName(feature){
+  const p=feature.properties||{};
+  // try common known keys first (fast path)
+  const known=p.district||p.DISTRICT||p.District||p.dtname||p.Dist_Name||p.dt_name||p.NAME_2||p.name||p.NAME||p.Name||p.name_2;
+  if(known)return String(known);
+  // fallback: scan every property for the first non-empty string value that looks like a place name
+  // (skip ID/code-like keys and very short/numeric-looking values)
+  for(const k in p){
+    const v=p[k];
+    if(typeof v!=="string"||!v.trim())continue;
+    if(/^(id|code|cen|st_|iso|type|engtype|varname|nl_name|gid)/i.test(k))continue;
+    if(/^\d+$/.test(v.trim()))continue;
+    return v.trim();
+  }
+  return "";
+}
+function normCity(s){return s?String(s).trim().toLowerCase().replace(/\s+/g," "):"";}
 let INDIA_GEO=null, INDIA_GEO_LOADING=null;
 function loadIndiaGeo(){
   if(INDIA_GEO)return Promise.resolve(INDIA_GEO);
@@ -1205,6 +1256,20 @@ function densityCountsForMonth(mk,filt,days){
   rows.forEach(r=>{const k=normState(r.state);if(!k)return;m.set(k,(m.get(k)||0)+1);});
   return m;
 }
+function districtCountsForState(stateName,mk,filt,days){
+  const target=normState(stateName);
+  const rows=DB.rows.filter(r=>{
+    if(!r.created)return false; if(monKey(r.created)!==mk)return false;
+    if(normState(r.state)!==target)return false;
+    if(filt.insurer.length&&!filt.insurer.includes(r.insurer))return false;
+    if(filt.segment.length&&!filt.segment.includes(r.segment))return false;
+    if(filt.vtype.length&&!filt.vtype.includes(r.vtype))return false;
+    if(days&&days.length&&!days.includes(r.created.getDate()))return false;
+    return true;});
+  const m=new Map(); const unmapped=[];
+  rows.forEach(r=>{const k=normCity(r.city);if(!k){unmapped.push(r);return;}m.set(k,(m.get(k)||0)+1);});
+  return {counts:m,total:rows.length,unmappedCount:unmapped.length};
+}
 function daysInMonthKey(mk){const y=Math.floor(mk/12),m=mk%12;return new Date(y,m+1,0).getDate();}
 const INSURER_COLORS={
   "New India":"#1F4EAA","United":"#4FC3F7","United India":"#4FC3F7","National":"#26A69A","Oriental":"#F57C00"
@@ -1217,7 +1282,7 @@ function densityColor(v,max,baseHex){
   const c=lo.map((l,i)=>Math.round(l+(hi[i]-l)*t));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
-function buildMapSVG(geo,counts,containerId,tipId,baseHex){
+function buildMapSVG(geo,counts,containerId,tipId,baseHex,mk){
   // d3-geo: mercator projection fit to a fixed viewBox sized for India's aspect ratio
   const width=560,height=520;
   const projection=d3.geoMercator().fitSize([width-16,height-16],geo);
@@ -1229,7 +1294,7 @@ function buildMapSVG(geo,counts,containerId,tipId,baseHex){
     const v=counts.get(name)||0;
     const d=path(f);
     if(!d)return;
-    paths+=`<path class="mapstate" data-state="${geoStateName(f).replace(/"/g,'')}" data-value="${v}" d="${d}" fill="${densityColor(v,max,baseHex)}" transform="translate(8,8)"></path>`;
+    paths+=`<path class="mapstate" data-state="${geoStateName(f).replace(/"/g,'')}" data-value="${v}" data-mk="${mk}" d="${d}" fill="${densityColor(v,max,baseHex)}" transform="translate(8,8)"></path>`;
   });
   return {svg:`<svg viewBox="0 0 ${width} ${height}">${paths}</svg>`,max};
 }
@@ -1243,8 +1308,58 @@ function wireMapTooltip(wrapEl,tipEl){
       tipEl.style.opacity="1";
     });
     p.addEventListener("mouseleave",()=>{tipEl.style.opacity="0";});
+    p.addEventListener("click",()=>{
+      const name=p.getAttribute("data-state"),mk=+p.getAttribute("data-mk");
+      const days=mk===state.densityM1?state.densityD1:state.densityD2;
+      openDistrictModal(name,mk,days);
+    });
   });
 }
+async function openDistrictModal(stateName,mk,days){
+  const modal=$("#dmodal"),title=$("#dmodalTitle"),body=$("#dmodalBody");
+  title.textContent=stateName+" — district-wise intimation";
+  body.innerHTML=`<div class="mapwrap" id="dist_wrap"><div class="maptip" id="dist_tip"></div><div id="dist_holder" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--faint);min-height:340px">Loading districts…</div></div>`;
+  modal.style.display="flex";
+  try{
+    const geo=await loadDistrictGeo(stateName);
+    const f=state.densityFilter;
+    const {counts,total,unmappedCount}=districtCountsForState(stateName,mk,f,days);
+    if(!total){body.innerHTML=`<div class="empty"><div class="big">No intimations</div><div class="hint">No cases match the current filters for ${stateName} in ${mLabel(new Date(Math.floor(mk/12),mk%12,1))}.</div></div>`;return;}
+    const max=Math.max(1,...[...counts.values()]);
+    const width=620,height=460;
+    const projection=d3.geoMercator().fitSize([width-16,height-16],geo);
+    const path=d3.geoPath(projection);
+    const countKeys=[...counts.keys()];
+    console.log("[district-map] District names found in map source for "+stateName+":", geo.features.map(geoDistrictName));
+    console.log("[district-map] City values found in your data for "+stateName+" (normalized):", countKeys);
+    const findCount=(k)=>{
+      if(counts.has(k))return counts.get(k);
+      // fuzzy fallback: substring containment either direction (handles minor naming/word-order differences)
+      const hit=countKeys.find(ck=>ck && k && (ck.includes(k)||k.includes(ck)));
+      return hit?counts.get(hit):0;
+    };
+    let paths="",matchedDistricts=0,totalDistricts=0;
+    geo.features.forEach(ft=>{
+      const dn=geoDistrictName(ft); const k=normCity(dn); const v=findCount(k);
+      const d=path(ft); if(!d)return;
+      totalDistricts++; if(v>0)matchedDistricts++;
+      paths+=`<path class="mapstate" data-state="${dn.replace(/"/g,'')}" data-value="${v}" d="${d}" fill="${densityColor(v,max,f.insurer.length===1?(INSURER_COLORS[f.insurer[0]]||DENSITY_DEFAULT_COLOR):DENSITY_DEFAULT_COLOR)}" transform="translate(8,8)"></path>`;
+    });
+    const matchWarning=matchedDistricts===0?`<div class="footnote miss" style="margin-top:6px">None of this state's districts matched a City value in your data — the City spelling in your Hub sheet may not match this map's district names exactly. Try checking the spelling for ${stateName}.</div>`:"";
+    body.innerHTML=`
+      <div class="mapwrap" id="dist_wrap"><div class="maptip" id="dist_tip"></div><svg viewBox="0 0 ${width} ${height}">${paths}</svg></div>
+      <div class="maplegend"><span>Low</span><div class="bar"></div><span>High</span></div>
+      <div class="footnote" style="margin-top:8px">${fmt(total)} total intimations in ${stateName} this view${unmappedCount?` · ${fmt(unmappedCount)} case(s) have no City value set on their Hub record and aren't shown on the district map`:""}.</div>
+      ${matchWarning}`;
+    wireMapTooltip($("#dist_wrap"),$("#dist_tip"));
+  }catch(err){
+    console.error(err);
+    body.innerHTML=`<div class="empty"><div class="big">Could not load district map</div><div class="hint">${err.message}. This state may not have a district-level map available, or the connection dropped.</div></div>`;
+  }
+}
+$("#dmodalClose").onclick=()=>{$("#dmodal").style.display="none";};
+$("#dmodalBackdrop").onclick=()=>{$("#dmodal").style.display="none";};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#dmodal").style.display="none";});
 async function renderDensity(){
   if(!DB)return;
   const f=state.densityFilter;
@@ -1281,7 +1396,7 @@ async function renderDensity(){
       <div class="maplegend"><span>Low</span><div class="bar" style="background:linear-gradient(90deg,#eef1fa,${baseHex})"></div><span>High</span></div>
     </div>
   </div>
-  <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month (and days, if chosen). Hover a state for the exact count. Map loads via CDN — requires an internet connection.</div>
+  <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month (and days, if chosen). Hover a state for the exact count, click a state to drill into district-wise density. Map loads via CDN — requires an internet connection.</div>
   `;
 
   $("#dm_insurer_holder").innerHTML=mselHTML("dm_insurer","Insurer",insurerNames,f.insurer);
@@ -1302,8 +1417,8 @@ async function renderDensity(){
     const geo=await loadIndiaGeo();
     const counts1=densityCountsForMonth(state.densityM1,f,state.densityD1.map(Number));
     const counts2=densityCountsForMonth(state.densityM2,f,state.densityD2.map(Number));
-    const m1=buildMapSVG(geo,counts1,"dm_svgholder1","dm_tip1",baseHex);
-    const m2=buildMapSVG(geo,counts2,"dm_svgholder2","dm_tip2",baseHex);
+    const m1=buildMapSVG(geo,counts1,"dm_svgholder1","dm_tip1",baseHex,state.densityM1);
+    const m2=buildMapSVG(geo,counts2,"dm_svgholder2","dm_tip2",baseHex,state.densityM2);
     const h1=$("#dm_svgholder1"),h2=$("#dm_svgholder2");
     if(h1){h1.style.display="block";h1.innerHTML=m1.svg;wireMapTooltip($("#dm_wrap1"),$("#dm_tip1"));}
     if(h2){h2.style.display="block";h2.innerHTML=m2.svg;wireMapTooltip($("#dm_wrap2"),$("#dm_tip2"));}
@@ -1400,8 +1515,8 @@ function renderInsights(){
     if(r.created&&P.inCur(r.created))a.mtd++; if(r.created&&P.inPrev(r.created))a.prev++;
     if(r.status==="Outstanding"){a.os++;const age=r.created?Math.round((state.asOf-r.created)/86400000):null;if(age!=null)a.age.push(age);}}
   const metaByRO=new Map(); DB.hubRows.forEach(o=>{if(o.roKey){if(!metaByRO.has(o.roKey))metaByRO.set(o.roKey,{...o,target:0});metaByRO.get(o.roKey).target+=o.target||0;}});
-  const roRows=[...roAgg.entries()].map(([k,a])=>{const i=k.lastIndexOf("|");const roName=i<0?k:k.slice(0,i);const m=metaByRO.get(k)||{};
-    return {name:roName,mtd:a.mtd,prev:a.prev,os:a.os,age:avg(a.age),tgt:m.target||0,com:m.target?a.mtd/m.target:null,grown:a.mtd-a.prev};}).filter(x=>x.mtd||x.os);
+  const roRows=[...roAgg.entries()].map(([k,a])=>{const i=k.lastIndexOf("|");const roName=i<0?k:k.slice(0,i);const insurer=i<0?"":k.slice(i+1);const m=metaByRO.get(k)||{};
+    return {name:roName,insurer:insurer||m.insurer||"—",mtd:a.mtd,prev:a.prev,os:a.os,age:avg(a.age),tgt:m.target||0,com:m.target?a.mtd/m.target:null,grown:a.mtd-a.prev};}).filter(x=>x.mtd||x.os);
   const roVolRanked=rankByQuartile(roRows,e=>e.mtd,"high");
   const roAgeRanked=rankByQuartile(roRows.filter(x=>x.os>0),e=>e.age,"low");
   const roRisk=roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v);
@@ -1476,9 +1591,9 @@ function renderInsights(){
   <div class="sectionhead"><span class="eyebrow">7 · RO Performance</span><h2>Volume, growth &amp; aging</h2><div class="rule"></div></div>
   ${insightBlock("RO performance","",
     [`${fmt(roRows.length)} active ROs this period. ${roDeclining.length?fmt(roDeclining.length)+" RO(s) show a 30%+ month-on-month drop in intimation volume — flagged below.":"No RO shows a sharp month-on-month volume drop this period."}`],
-    [...roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} — ${fmt1(x.age)}d avg OS age on ${fmt(x.os)} open cases — oldest-aging quartile.`),
-     ...roDeclining.slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last period (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
-    roVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} intimations, top quartile by volume${x.tgt?`, ${pct(x.com)} of target`:""}.`))}
+    [...roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt1(x.age)}d avg OS age on ${fmt(x.os)} open cases — oldest-aging quartile.`),
+     ...roDeclining.slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last period (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
+    roVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} intimations, top quartile by volume${x.tgt?`, ${pct(x.com)} of target`:""}.`))}
 
   <div class="sectionhead"><span class="eyebrow">8 · Hub Performance</span><h2>Volume, growth &amp; aging</h2><div class="rule"></div></div>
   ${insightBlock("Hub performance","",
