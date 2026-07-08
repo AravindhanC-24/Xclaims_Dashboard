@@ -1397,6 +1397,9 @@ async function renderDensity(){
     </div>
   </div>
   <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month (and days, if chosen). Hover a state for the exact count, click a state to drill into district-wise density. Map loads via CDN — requires an internet connection.</div>
+
+  <div class="sectionhead" style="margin-top:18px"><span class="eyebrow">Matrix</span><h2>State &times; Vehicle Type — intimation count</h2><div class="rule"></div></div>
+  <div id="dm_matrix"></div>
   `;
 
   $("#dm_insurer_holder").innerHTML=mselHTML("dm_insurer","Insurer",insurerNames,f.insurer);
@@ -1422,6 +1425,53 @@ async function renderDensity(){
     const h1=$("#dm_svgholder1"),h2=$("#dm_svgholder2");
     if(h1){h1.style.display="block";h1.innerHTML=m1.svg;wireMapTooltip($("#dm_wrap1"),$("#dm_tip1"));}
     if(h2){h2.style.display="block";h2.innerHTML=m2.svg;wireMapTooltip($("#dm_wrap2"),$("#dm_tip2"));}
+
+    // ---- State × Vehicle Type matrix ----
+    const vtypeList=[...new Set(DB.rows.map(r=>r.vtype).filter(v=>v&&v!=="—"))].sort();
+    const stateList=[...new Set(DB.rows.map(r=>r.state).filter(Boolean))].sort();
+
+    function buildMatrix(mk,days){
+      const dayNums=(days||[]).map(Number);
+      // rows = {stateName: {vtype: count, _total: count}}
+      const mat=new Map();
+      DB.rows.forEach(r=>{
+        if(!r.created||monKey(r.created)!==mk)return;
+        if(f.insurer.length&&!f.insurer.includes(r.insurer))return;
+        if(f.segment.length&&!f.segment.includes(r.segment))return;
+        if(f.vtype.length&&!f.vtype.includes(r.vtype))return;
+        if(dayNums.length&&!dayNums.includes(r.created.getDate()))return;
+        if(!r.state||!r.vtype||r.vtype==="—")return;
+        const st=r.state;
+        if(!mat.has(st))mat.set(st,{_total:0});
+        const row=mat.get(st);
+        row[r.vtype]=(row[r.vtype]||0)+1;
+        row._total++;
+      });
+      // filter to vttypes that appear in this period
+      const activeVtypes=vtypeList.filter(v=>f.vtype.length?f.vtype.includes(v):[...mat.values()].some(r=>r[v]));
+      return {mat,activeVtypes};
+    }
+
+    function matrixHTML(mk,days,label){
+      const {mat,activeVtypes}=buildMatrix(mk,days);
+      if(!mat.size)return `<div class="empty" style="padding:24px 0;font-size:13px;color:var(--muted)">No data for ${label}</div>`;
+      const colTotals={}; activeVtypes.forEach(v=>{colTotals[v]=[...mat.values()].reduce((s,r)=>s+(r[v]||0),0);});
+      const grandTotal=[...mat.values()].reduce((s,r)=>s+r._total,0);
+      const sortedStates=[...mat.entries()].sort((a,b)=>b[1]._total-a[1]._total);
+      const thead=`<tr><th>State</th>${activeVtypes.map(v=>`<th>${v}</th>`).join("")}<th>Total</th></tr>`;
+      const tbody=sortedStates.map(([st,row])=>`<tr><td>${st}</td>${activeVtypes.map(v=>`<td class="num">${row[v]||"–"}</td>`).join("")}<td class="num" style="font-weight:700">${fmt(row._total)}</td></tr>`).join("");
+      const tfoot=`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td>${activeVtypes.map(v=>`<td class="num">${fmt(colTotals[v])}</td>`).join("")}<td class="num">${fmt(grandTotal)}</td></tr>`;
+      return `<div class="scrollx"><table class="sortable"><thead>${thead}</thead><tbody>${tbody}${tfoot}</tbody></table></div>`;
+    }
+
+    const lbl1=mLabel(new Date(Math.floor(state.densityM1/12),state.densityM1%12,1))+(state.densityD1.length?" · days "+state.densityD1.join(","):"");
+    const lbl2=mLabel(new Date(Math.floor(state.densityM2/12),state.densityM2%12,1))+(state.densityD2.length?" · days "+state.densityD2.join(","):"");
+    const matEl=$("#dm_matrix");
+    if(matEl){matEl.innerHTML=`
+    <div class="grid g2">
+      <div class="card"><h3><span class="dot"></span>Map 1 — ${lbl1}</h3>${matrixHTML(state.densityM1,state.densityD1,lbl1)}</div>
+      <div class="card"><h3><span class="dot"></span>Map 2 — ${lbl2}</h3>${matrixHTML(state.densityM2,state.densityD2,lbl2)}</div>
+    </div>`;}
   }catch(err){
     console.error(err);
     ["#dm_svgholder1","#dm_svgholder2"].forEach(s=>{const el=$(s);if(el)el.innerHTML='<span class="miss" style="padding:20px;text-align:center">Could not load India map (needs internet access). '+err.message+'</span>';});
