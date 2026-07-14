@@ -158,6 +158,25 @@
   .drop.hot{border-color:var(--p1); background:var(--p1s)}
   .footnote{font-size:11px; color:var(--faint); margin-top:8px} .miss{color:var(--bad)}
   .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 18px; border-radius:11px; font-size:13px; z-index:99; box-shadow:0 10px 30px rgba(0,0,0,.2); display:none}
+
+  /* PDF section download button */
+  .pdf-dl-btn{display:inline-flex;align-items:center;gap:5px;background:var(--p1s);color:var(--p1);border:1px solid #c8c8f4;border-radius:8px;padding:4px 11px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:background .15s,box-shadow .15s;white-space:nowrap;flex:none}
+  .pdf-dl-btn:hover{background:var(--p1);color:#fff;box-shadow:0 3px 10px rgba(91,91,214,.28)}
+  .pdf-dl-btn svg{width:12px;height:12px;flex:none}
+
+  /* print styles */
+  @media print{
+    header.top,nav.tabs,.filterbar,.pdf-dl-btn,.toast,.dmodal{display:none!important}
+    body{background:#fff!important;font-size:12px}
+    main{padding:0!important;max-width:100%!important}
+    .page{display:none!important}
+    .print-section{display:block!important;page-break-after:always}
+    .print-section-title{font-size:18px;font-weight:800;margin:0 0 14px;padding-bottom:8px;border-bottom:2px solid #5b5bd6;color:#1f2540}
+    .card{box-shadow:none!important;border:1px solid #e4e8f4!important;break-inside:avoid}
+    .chartwrap{min-height:200px!important}
+    canvas{max-width:100%!important}
+    .scrolly,.scrollx{max-height:none!important;overflow:visible!important}
+  }
 </style>
 </head>
 <body>
@@ -250,15 +269,24 @@ function wireMsel(id,onChange){
   const wrap=$("#"+id+"_wrap"); if(!wrap)return;
   const btn=$("#"+id+"_btn"), panel=$("#"+id+"_panel");
   btn.onclick=e=>{e.stopPropagation();$$(".msel-panel.open").forEach(p=>{if(p!==panel)p.classList.remove("open");});panel.classList.toggle("open");};
-  panel.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.onchange=()=>{
+  // stop all clicks inside panel from bubbling to the document dismiss handler
+  panel.addEventListener("click",e=>e.stopPropagation());
+  panel.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.onchange=e=>{
     const vals=[...panel.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);
+    updateMselLabel(id,vals);
     onChange(vals);
   };});
   panel.querySelectorAll('[data-act]').forEach(b=>{b.onclick=e=>{e.stopPropagation();
     const cbs=[...panel.querySelectorAll('input[type="checkbox"]')];
-    if(b.dataset.act==="all"){cbs.forEach(c=>c.checked=true);onChange(cbs.map(c=>c.value));}
-    else{cbs.forEach(c=>c.checked=false);onChange([]);}
+    if(b.dataset.act==="all"){cbs.forEach(c=>c.checked=true);const vals=cbs.map(c=>c.value);updateMselLabel(id,vals);onChange(vals);}
+    else{cbs.forEach(c=>c.checked=false);updateMselLabel(id,[]);onChange([]);}
   };});
+}
+function updateMselLabel(id,vals){
+  const btn=$("#"+id+"_btn"); if(!btn)return;
+  const lbl=btn.querySelector(".lbl"); if(!lbl)return;
+  lbl.textContent=vals.length===0?"All":(vals.length===1?vals[0]:vals.length+" selected");
+  btn.classList.toggle("active",vals.length>0);
 }
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".msel"))return;$$(".msel-panel.open").forEach(p=>p.classList.remove("open"));});
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -490,6 +518,44 @@ let topNPref=10;
 function topNctl(){return `<select id="topNsel" style="margin-left:auto;border:1px solid var(--line);border-radius:8px;padding:3px 7px;font:inherit;font-size:11px"><option value="10" ${topNPref===10?"selected":""}>Top 10</option><option value="20" ${topNPref===20?"selected":""}>Top 20</option></select>`;}
 function wireTopN(re){const el=$("#topNsel");if(el)el.onchange=()=>{topNPref=+el.value;re();};}
 function podium(arr,cls,fmtFn){return `<div class="podium">${arr.map((x,i)=>`<div class="pod ${cls}"><div class="rank">#${i+1}</div><div class="nm">${x.name}</div><div class="mt">${fmtFn(x)}</div></div>`).join("")||'<div class="mt" style="color:var(--faint)">Not enough data</div>'}</div>`;}
+
+/* ---- PDF section download ---- */
+const pdfDlIcon=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0-2.5-2.5M8 10l2.5-2.5"/><rect x="2" y="12" width="12" height="2" rx="1" fill="currentColor" stroke="none"/></svg>`;
+function pdfDlBtn(sectionTitle){const safe=sectionTitle.replace(/"/g,"&quot;");return `<button class="pdf-dl-btn" onclick="printSection(this,'${safe}')" title="Download as PDF">${pdfDlIcon} PDF</button>`;}
+function printSection(btn,title){
+  // find the closest sectionhead, then collect everything until the next sectionhead or end of page
+  const head=btn.closest(".sectionhead"); if(!head)return;
+  const page=head.closest(".page"); if(!page)return;
+  const allNodes=[...page.children];
+  const startIdx=allNodes.indexOf(head);
+  let endIdx=allNodes.length;
+  for(let i=startIdx+1;i<allNodes.length;i++){if(allNodes[i].classList.contains("sectionhead")){endIdx=i;break;}}
+  const sectionNodes=allNodes.slice(startIdx,endIdx);
+  // build a temporary print container
+  const prev=document.getElementById("__pdf_print_section__");if(prev)prev.remove();
+  const wrap=document.createElement("div");wrap.id="__pdf_print_section__";wrap.className="print-section";
+  const ttl=document.createElement("div");ttl.className="print-section-title";ttl.textContent=title;wrap.appendChild(ttl);
+  sectionNodes.forEach(n=>{const cl=n.cloneNode(true);cl.style.margin="0 0 14px";wrap.appendChild(cl);});
+  document.body.appendChild(wrap);
+  // hide everything except the wrap
+  document.body.dataset.printing="1";
+  const style=document.createElement("style");style.id="__pdf_print_style__";
+  style.textContent=`@media print{body[data-printing] *:not(#__pdf_print_section__, #__pdf_print_section__ *){display:none!important} body[data-printing] #__pdf_print_section__{display:block!important}}`;
+  document.head.appendChild(style);
+  window.print();
+  // cleanup after dialog closes
+  setTimeout(()=>{wrap.remove();style.remove();delete document.body.dataset.printing;},800);
+}
+/* wire PDF buttons on sectionheads (called after each tab render) */
+function wirePdfBtns(){
+  $$(".sectionhead").forEach(sh=>{
+    if(sh.querySelector(".pdf-dl-btn"))return; // already wired
+    const h2=sh.querySelector("h2"); if(!h2)return;
+    const title=h2.textContent.trim();
+    const div=document.createElement("div");div.innerHTML=pdfDlBtn(title);
+    sh.insertBefore(div.firstChild, sh.querySelector(".rule")||null);
+  });
+}
 </script>
 
 <script>
@@ -1701,7 +1767,7 @@ function renderInsights(){
 const state={asOf:null,activeN:1,fyMode:false,fy:null,flt:{insurer:[],zone:[],segment:[],vtype:[]},osElapsed:5,subAFilter:{tl:[],zone:[]},assFilter:{tl:[],zone:[],segment:[]},cceFilter:{tl:[],zone:[]},perfFilter:{insurer:[],ro:[],hub:[]},perfRange:6,densityFilter:{insurer:[],vtype:[],segment:[]},densityM1:null,densityM2:null,densityD1:[],densityD2:[],insightsFilter:{zone:[],insurer:[],vtype:[],segment:[]}};
 const RENDER={intimation:renderIntimation,submission:renderSubmission,outstanding:renderOutstanding,assessor:renderAssessor,cce:renderCCE,upload:renderUpload,hub:renderHub,ro:renderRO,perf:renderPerf,density:renderDensity,insights:renderInsights};
 let current="intimation";
-function renderCurrent(){clearCharts();try{RENDER[current]();}catch(e){console.error(e);toast("Render error: "+e.message);}updateScope();}
+function renderCurrent(){clearCharts();try{RENDER[current]();}catch(e){console.error(e);toast("Render error: "+e.message);}updateScope();wirePdfBtns();}
 function updateScope(){const P=computePeriod();$("#scopeNote").innerHTML=`Scope: <b>${P.scope}</b>`;}
 function switchTab(t){current=t;$$("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));$$(".page").forEach(p=>p.classList.remove("active"));$("#page-"+t).classList.add("active");
   $("#filterbar").style.display=(["assessor","cce","upload","perf","density","insights"].includes(t))?"none":"flex";renderCurrent();}
