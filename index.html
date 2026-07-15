@@ -159,23 +159,63 @@
   .footnote{font-size:11px; color:var(--faint); margin-top:8px} .miss{color:var(--bad)}
   .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 18px; border-radius:11px; font-size:13px; z-index:99; box-shadow:0 10px 30px rgba(0,0,0,.2); display:none}
 
-  /* PDF section download button */
-  .pdf-dl-btn{display:inline-flex;align-items:center;gap:5px;background:var(--p1s);color:var(--p1);border:1px solid #c8c8f4;border-radius:8px;padding:4px 11px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:background .15s,box-shadow .15s;white-space:nowrap;flex:none}
-  .pdf-dl-btn:hover{background:var(--p1);color:#fff;box-shadow:0 3px 10px rgba(91,91,214,.28)}
-  .pdf-dl-btn svg{width:12px;height:12px;flex:none}
+  /* ---- PDF Download Button (header) ---- */
+  .pdf-top-btn{background:#fff;color:var(--p1);border:1.5px solid var(--p1);border-radius:10px;padding:8px 15px;font:inherit;font-weight:700;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .15s,box-shadow .15s}
+  .pdf-top-btn:hover{background:var(--p1);color:#fff;box-shadow:0 4px 14px rgba(91,91,214,.3)}
+  .pdf-top-btn svg{width:14px;height:14px;flex:none}
 
-  /* print styles */
+  /* ---- PDF Selection Modal ---- */
+  .pdfmodal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;display:none}
+  .pdfmodal.open{display:flex}
+  .pdfmodal-back{position:absolute;inset:0;background:rgba(20,24,40,.55)}
+  .pdfmodal-box{position:relative;background:#fff;border-radius:18px;width:min(680px,94vw);max-height:88vh;overflow-y:auto;box-shadow:0 28px 70px rgba(20,24,40,.3);display:flex;flex-direction:column}
+  .pdfmodal-head{padding:18px 22px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:18px 18px 0 0;z-index:1}
+  .pdfmodal-head h3{margin:0;font-size:17px;font-weight:800;color:var(--ink)}
+  .pdfmodal-head p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+  .pdfmodal-close{border:none;background:var(--bg2);color:var(--ink);width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer;flex:none}
+  .pdfmodal-body{padding:18px 22px;flex:1}
+  .pdfmodal-tab{margin-bottom:20px}
+  .pdfmodal-tab-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line2);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .pdfmodal-tab-label input{accent-color:var(--p1);width:14px;height:14px;cursor:pointer;flex:none}
+  .pdfmodal-sections{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+  .pdfmodal-sec{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--bg);cursor:pointer;font-size:12.5px;color:var(--ink-soft);transition:background .12s}
+  .pdfmodal-sec:hover{background:var(--p1s);color:var(--p1)}
+  .pdfmodal-sec input{accent-color:var(--p1);width:14px;height:14px;cursor:pointer;flex:none}
+  .pdfmodal-sec.checked{background:var(--p1s);color:var(--p1);font-weight:700}
+  .pdfmodal-foot{padding:14px 22px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;background:#fff;border-radius:0 0 18px 18px;position:sticky;bottom:0}
+  .pdfmodal-foot .sel-all{flex:none;font-size:12px;color:var(--p1);font-weight:700;cursor:pointer;border:none;background:none;padding:0}
+  .pdfmodal-foot .spacer{flex:1}
+  .pdfmodal-generate{background:var(--p1);color:#fff;border:none;border-radius:11px;padding:11px 26px;font:inherit;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 5px 16px rgba(91,91,214,.32)}
+  .pdfmodal-generate:hover{filter:brightness(1.08)}
+  .pdfmodal-generate:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ---- Print output ---- */
   @media print{
-    header.top,nav.tabs,.filterbar,.pdf-dl-btn,.toast,.dmodal{display:none!important}
-    body{background:#fff!important;font-size:12px}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    header.top,nav.tabs,.filterbar,.pdfmodal,.toast,#landing{display:none!important}
+    body{background:#fff!important;margin:0;padding:0}
     main{padding:0!important;max-width:100%!important}
     .page{display:none!important}
-    .print-section{display:block!important;page-break-after:always}
-    .print-section-title{font-size:18px;font-weight:800;margin:0 0 14px;padding-bottom:8px;border-bottom:2px solid #5b5bd6;color:#1f2540}
-    .card{box-shadow:none!important;border:1px solid #e4e8f4!important;break-inside:avoid}
-    .chartwrap{min-height:200px!important}
-    canvas{max-width:100%!important}
-    .scrolly,.scrollx{max-height:none!important;overflow:visible!important}
+    .pdf-print-root{display:block!important}
+    .pdf-section-block{page-break-before:auto;margin-bottom:0;break-inside:avoid-page}
+    .pdf-section-block+.pdf-section-block{page-break-before:always}
+    .pdf-sec-heading{font-size:14px;font-weight:800;color:#1f2540;padding:8px 12px;background:#ebebfb;border-left:4px solid #5b5bd6;border-radius:4px;margin:0 0 12px}
+    .pdf-tab-title{font-size:18px;font-weight:800;color:#1f2540;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid #5b5bd6}
+    .pdf-tab-subtitle{font-size:11px;color:#737c9e;margin:0 0 16px}
+    .card{box-shadow:none!important;border:1px solid #e4e8f4!important;break-inside:avoid;margin-bottom:10px!important}
+    .card h3{font-size:12px!important}
+    .chartwrap{min-height:180px!important}
+    canvas{max-width:100%!important;height:auto!important}
+    .scrolly,.scrollx{max-height:none!important;overflow:visible!important;border:none!important;border-radius:0!important}
+    table{font-size:11px!important;page-break-inside:auto}
+    tr{page-break-inside:avoid}
+    .kpis{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
+    .kpi{padding:8px 10px!important}
+    .kpi .val{font-size:18px!important}
+    .podium{flex-wrap:wrap!important}
+    .sectionhead{display:none!important}
+    .grid{gap:8px!important}
+    .pdf-top-btn{display:none!important}
   }
 </style>
 </head>
@@ -189,6 +229,9 @@
   <div class="ctrl" id="dateCtrl" style="display:none"><label>As of</label><input type="date" id="asOf"></div>
   <div class="ctrl" id="activeCtrl" style="display:none"><label>Active ≥</label><select id="activeN"></select></div>
   <div class="ctrl"><input type="file" id="file" accept=".xlsx,.xlsm" style="display:none"><button class="upload-btn" id="uploadBtn">Upload Excel</button><span id="fileName"></span></div>
+  <div class="ctrl" id="pdfCtrl" style="display:none">
+    <button class="pdf-top-btn" id="pdfOpenBtn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0-2.5-2.5M8 10l2.5-2.5"/><rect x="2" y="12" width="12" height="2" rx="1" fill="currentColor" stroke="none"/></svg>Download PDF</button>
+  </div>
 </header>
 
 <nav class="tabs" id="tabs" style="display:none">
@@ -238,6 +281,29 @@
   <div id="page-insights" class="page"></div>
 </main>
 <div class="toast" id="toast"></div>
+
+<!-- PDF selection modal -->
+<div class="pdfmodal" id="pdfModal">
+  <div class="pdfmodal-back" id="pdfModalBack"></div>
+  <div class="pdfmodal-box">
+    <div class="pdfmodal-head">
+      <div>
+        <h3>📄 Download PDF</h3>
+        <p>Select sections to include in the PDF export</p>
+      </div>
+      <button class="pdfmodal-close" id="pdfModalClose">✕</button>
+    </div>
+    <div class="pdfmodal-body" id="pdfModalBody">
+      <!-- filled by JS -->
+    </div>
+    <div class="pdfmodal-foot">
+      <button class="sel-all" id="pdfSelAll">Select All</button>
+      <button class="sel-all" id="pdfSelNone" style="color:var(--muted)">Clear All</button>
+      <div class="spacer"></div>
+      <button class="pdfmodal-generate" id="pdfGenerate">Generate PDF</button>
+    </div>
+  </div>
+</div>
 <div class="dmodal" id="dmodal" style="display:none">
   <div class="dmodal-backdrop" id="dmodalBackdrop"></div>
   <div class="dmodal-box">
@@ -519,43 +585,186 @@ function topNctl(){return `<select id="topNsel" style="margin-left:auto;border:1
 function wireTopN(re){const el=$("#topNsel");if(el)el.onchange=()=>{topNPref=+el.value;re();};}
 function podium(arr,cls,fmtFn){return `<div class="podium">${arr.map((x,i)=>`<div class="pod ${cls}"><div class="rank">#${i+1}</div><div class="nm">${x.name}</div><div class="mt">${fmtFn(x)}</div></div>`).join("")||'<div class="mt" style="color:var(--faint)">Not enough data</div>'}</div>`;}
 
-/* ---- PDF section download ---- */
-const pdfDlIcon=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0-2.5-2.5M8 10l2.5-2.5"/><rect x="2" y="12" width="12" height="2" rx="1" fill="currentColor" stroke="none"/></svg>`;
-function pdfDlBtn(sectionTitle){const safe=sectionTitle.replace(/"/g,"&quot;");return `<button class="pdf-dl-btn" onclick="printSection(this,'${safe}')" title="Download as PDF">${pdfDlIcon} PDF</button>`;}
-function printSection(btn,title){
-  // find the closest sectionhead, then collect everything until the next sectionhead or end of page
-  const head=btn.closest(".sectionhead"); if(!head)return;
-  const page=head.closest(".page"); if(!page)return;
-  const allNodes=[...page.children];
-  const startIdx=allNodes.indexOf(head);
-  let endIdx=allNodes.length;
-  for(let i=startIdx+1;i<allNodes.length;i++){if(allNodes[i].classList.contains("sectionhead")){endIdx=i;break;}}
-  const sectionNodes=allNodes.slice(startIdx,endIdx);
-  // build a temporary print container
-  const prev=document.getElementById("__pdf_print_section__");if(prev)prev.remove();
-  const wrap=document.createElement("div");wrap.id="__pdf_print_section__";wrap.className="print-section";
-  const ttl=document.createElement("div");ttl.className="print-section-title";ttl.textContent=title;wrap.appendChild(ttl);
-  sectionNodes.forEach(n=>{const cl=n.cloneNode(true);cl.style.margin="0 0 14px";wrap.appendChild(cl);});
-  document.body.appendChild(wrap);
-  // hide everything except the wrap
-  document.body.dataset.printing="1";
-  const style=document.createElement("style");style.id="__pdf_print_style__";
-  style.textContent=`@media print{body[data-printing] *:not(#__pdf_print_section__, #__pdf_print_section__ *){display:none!important} body[data-printing] #__pdf_print_section__{display:block!important}}`;
-  document.head.appendChild(style);
-  window.print();
-  // cleanup after dialog closes
-  setTimeout(()=>{wrap.remove();style.remove();delete document.body.dataset.printing;},800);
+/* ---- PDF modal system ---- */
+// Section registry: tab → array of {id, label}
+// Each entry maps to a DOM section that can be independently selected
+const PDF_SECTIONS={
+  intimation:[
+    {id:"s_intim_kpis",   label:"KPIs — FTD / MTD / LMTD"},
+    {id:"s_intim_hub",    label:"Hub movement (grown & degrown)"},
+    {id:"s_intim_ro",     label:"RO movement (insurer-wise)"},
+    {id:"s_intim_mix",    label:"Insurer · Segment · Vehicle · Trend"},
+    {id:"s_intim_makes",  label:"Top makes & models"},
+  ],
+  submission:[
+    {id:"s_sub_kpis",     label:"KPIs — submission & TAT"},
+    {id:"s_sub_assessor", label:"Assessor-wise submission"},
+    {id:"s_sub_portfolio",label:"Portfolio — insurer / segment / trend"},
+    {id:"s_sub_vehicles", label:"Make & model — TAT & settlement"},
+  ],
+  outstanding:[
+    {id:"s_os_kpis",      label:"KPIs — outstanding snapshot"},
+    {id:"s_os_aging",     label:"Aging · segment · vehicle · insurer"},
+    {id:"s_os_vehicles",  label:"Make & model wise"},
+    {id:"s_os_sla",       label:"SLA pressure — segment, zone, assessor"},
+  ],
+  assessor:[
+    {id:"s_ass_kpis",     label:"KPIs — assessor overview"},
+    {id:"s_ass_perf",     label:"Top 3 & Bottom 3 assessors"},
+    {id:"s_ass_scorecard",label:"Full assessor scorecard"},
+  ],
+  cce:[
+    {id:"s_cce_kpis",     label:"KPIs — CCE overview"},
+    {id:"s_cce_perf",     label:"Top 3 & Bottom 3 CCEs"},
+    {id:"s_cce_scorecard",label:"Full CCE scorecard"},
+  ],
+  upload:[
+    {id:"s_upl_kpis",     label:"KPIs — uploading"},
+    {id:"s_upl_throughput",label:"Throughput — person, insurer, weekday"},
+    {id:"s_upl_lag",      label:"FSR → Email → Upload TAT"},
+    {id:"s_upl_scorecard",label:"Uploading team scorecard"},
+  ],
+  hub:[
+    {id:"s_hub_kpis",     label:"KPIs — hub overview"},
+    {id:"s_hub_dist",     label:"Zone intimation & top hubs"},
+    {id:"s_hub_master",   label:"Hub details master"},
+  ],
+  ro:[
+    {id:"s_ro_kpis",      label:"KPIs — RO overview"},
+    {id:"s_ro_cat",       label:"RO category & top ROs"},
+    {id:"s_ro_master",    label:"RO performance master"},
+  ],
+  perf:[
+    {id:"s_perf_intim",   label:"Performance — Intimation"},
+    {id:"s_perf_sub",     label:"Performance — Submission"},
+    {id:"s_perf_os",      label:"Performance — Outstanding"},
+    {id:"s_perf_mix",     label:"MTD Mix — vehicle & segment"},
+    {id:"s_perf_osbucket",label:"Outstanding aging & snapshot"},
+    {id:"s_perf_summary", label:"Month-wise summary"},
+    {id:"s_perf_claims",  label:"Claim size & savings"},
+  ],
+  density:[
+    {id:"s_den_map",      label:"Intimation penetration map"},
+    {id:"s_den_matrix",   label:"State × Vehicle type matrix"},
+  ],
+  insights:[
+    {id:"s_ins_intim",    label:"Insights — Intimation"},
+    {id:"s_ins_sub",      label:"Insights — Submission"},
+    {id:"s_ins_os",       label:"Insights — Outstanding"},
+    {id:"s_ins_ass",      label:"Insights — Assessor"},
+    {id:"s_ins_cce",      label:"Insights — CCE"},
+    {id:"s_ins_upl",      label:"Insights — Uploading Team"},
+    {id:"s_ins_ro",       label:"Insights — RO Performance"},
+    {id:"s_ins_hub",      label:"Insights — Hub Performance"},
+    {id:"s_ins_den",      label:"Insights — District"},
+  ],
+};
+const TAB_LABELS={intimation:"01 · Intimation",submission:"02 · Submission",outstanding:"03 · Outstanding",assessor:"04 · Assessor",cce:"05 · CCE",upload:"06 · Uploading",hub:"07 · Hub",ro:"08 · RO",perf:"09 · Performance Report",density:"10 · Intimation Penetration",insights:"11 · Insights"};
+const pdfChecked=new Set(); // tracks selected section ids
+
+function buildPdfModal(){
+  let html="";
+  Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
+    const tabLabel=TAB_LABELS[tab]||tab;
+    const tabId="pdftab_"+tab;
+    html+=`<div class="pdfmodal-tab">
+      <div class="pdfmodal-tab-label"><input type="checkbox" id="${tabId}" data-tab="${tab}" onchange="togglePdfTab('${tab}',this.checked)"><label for="${tabId}" style="cursor:pointer">${tabLabel}</label></div>
+      <div class="pdfmodal-sections">`;
+    secs.forEach(s=>{
+      const chk=pdfChecked.has(s.id)?"checked":"";
+      html+=`<label class="pdfmodal-sec${chk?" checked":""}" id="pdfrow_${s.id}"><input type="checkbox" value="${s.id}" ${chk} onchange="togglePdfSec('${s.id}',this.checked,'${tab}')">${s.label}</label>`;
+    });
+    html+=`</div></div>`;
+  });
+  $("#pdfModalBody").innerHTML=html;
+  syncPdfTabChecks();
 }
-/* wire PDF buttons on sectionheads (called after each tab render) */
-function wirePdfBtns(){
-  $$(".sectionhead").forEach(sh=>{
-    if(sh.querySelector(".pdf-dl-btn"))return; // already wired
-    const h2=sh.querySelector("h2"); if(!h2)return;
-    const title=h2.textContent.trim();
-    const div=document.createElement("div");div.innerHTML=pdfDlBtn(title);
-    sh.insertBefore(div.firstChild, sh.querySelector(".rule")||null);
+function togglePdfSec(id,on,tab){
+  on?pdfChecked.add(id):pdfChecked.delete(id);
+  const row=document.getElementById("pdfrow_"+id);
+  if(row)row.classList.toggle("checked",on);
+  syncPdfTabChecks();
+}
+function togglePdfTab(tab,on){
+  (PDF_SECTIONS[tab]||[]).forEach(s=>{
+    on?pdfChecked.add(s.id):pdfChecked.delete(s.id);
+    const row=document.getElementById("pdfrow_"+s.id);
+    if(row){row.classList.toggle("checked",on);const cb=row.querySelector("input");if(cb)cb.checked=on;}
   });
 }
+function syncPdfTabChecks(){
+  Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
+    const el=document.getElementById("pdftab_"+tab);if(!el)return;
+    const total=secs.length, checked=secs.filter(s=>pdfChecked.has(s.id)).length;
+    el.checked=checked===total;el.indeterminate=checked>0&&checked<total;
+  });
+}
+
+// Wire modal open/close directly (scripts run after DOM)
+function openPdfModal(){buildPdfModal();$("#pdfModal").classList.add("open");}
+function closePdfModal(){$("#pdfModal").classList.remove("open");}
+(function(){
+  const openBtn=$("#pdfOpenBtn"),closeBtn=$("#pdfModalClose"),back=$("#pdfModalBack");
+  if(openBtn)openBtn.onclick=openPdfModal;
+  if(closeBtn)closeBtn.onclick=closePdfModal;
+  if(back)back.onclick=closePdfModal;
+  const selAll=$("#pdfSelAll");if(selAll)selAll.onclick=()=>{Object.values(PDF_SECTIONS).flat().forEach(s=>pdfChecked.add(s.id));buildPdfModal();};
+  const selNone=$("#pdfSelNone");if(selNone)selNone.onclick=()=>{pdfChecked.clear();buildPdfModal();};
+  const gen=$("#pdfGenerate");if(gen)gen.onclick=generatePdf;
+})();
+
+function generatePdf(){
+  if(!pdfChecked.size){toast("Select at least one section.");return;}
+  // collect DOM blocks for each selected section ID
+  const root=document.createElement("div");root.className="pdf-print-root";
+  root.style.cssText="display:none;position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;padding:22px 28px";
+
+  let prevTab=null;
+  Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
+    const selected=secs.filter(s=>pdfChecked.has(s.id));
+    if(!selected.length)return;
+    // tab title block
+    const tabBlock=document.createElement("div");
+    tabBlock.className="pdf-section-block";
+    tabBlock.innerHTML=`<div class="pdf-tab-title">${TAB_LABELS[tab]||tab}</div><div class="pdf-tab-subtitle">Generated ${new Date().toLocaleString("en-IN")} · ${state?mLabel(state.asOf):""}</div>`;
+    root.appendChild(tabBlock);
+    // render each section
+    selected.forEach(s=>{
+      const el=document.getElementById(s.id);
+      if(!el){console.warn("PDF section not found:",s.id);return;}
+      const block=document.createElement("div");
+      block.className="pdf-section-block";
+      const heading=document.createElement("div");
+      heading.className="pdf-sec-heading";heading.textContent=s.label;
+      block.appendChild(heading);
+      const clone=el.cloneNode(true);
+      // remove any interactive/action elements from clone
+      clone.querySelectorAll("select,button,.msel,.pdf-top-btn").forEach(n=>n.remove());
+      block.appendChild(clone);
+      root.appendChild(block);
+    });
+  });
+
+  document.body.appendChild(root);
+  document.body.dataset.pdfprinting="1";
+  // add a one-shot print style that only shows root
+  const ps=document.createElement("style");ps.id="__pdfprintstyle__";
+  ps.textContent=`@media print{body[data-pdfprinting]>*:not(.pdf-print-root){display:none!important}.pdf-print-root{display:block!important;position:static!important}}`;
+  document.head.appendChild(ps);
+  root.style.display="block";
+  closePdfModal();
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{root.remove();ps.remove();delete document.body.dataset.pdfprinting;},800);
+  },300);
+}
+
+/* tag section containers in each tab render — called by wirePdfBtns after render */
+function wirePdfBtns(){
+  // no-op: section tagging is done inside each render via data-pdf-id attributes added below
+}
+/* helper called from render functions to wrap content with section id */
+function pdfWrap(id,html){return `<div id="${id}">${html}</div>`;}
 </script>
 
 <script>
@@ -598,6 +807,7 @@ function renderIntimation(){
   else{trL=P.trend.map(mLabel);trD=P.trend.map(m=>monMix.get(monKey(m))||0);}
 
   $("#page-intimation").innerHTML=`
+  <div id="s_intim_kpis">
   <div class="kpis">
     ${kpi("FTD Intimation",fmt(ftdTot),`as of ${dayKey(state.asOf)}`,"c1")}
     ${kpi(P.curLabel+" Intimation",fmt(curTot),deltaSub(curTot,prevTot,P.prevLabel),"c2")}
@@ -611,20 +821,29 @@ function renderIntimation(){
     ${kpi("Grown / Degrown Hub",`${gHub} / ${dHub}`,"vs "+P.prevLabel,"c8")}
     ${kpi("Grown / Degrown RO",`${gRO} / ${dRO}`,"vs "+P.prevLabel,"c2")}
   </div>
+  </div>
 
   <div class="sectionhead t2"><span class="eyebrow">Hub movement</span><h2>Top 10 grown & degrown hubs</h2><div class="rule"></div></div>
+  <div id="s_intim_hub">
   <div class="grid g2">${card("Top 10 grown hubs",moveTableHub([...hubMove].sort((a,b)=>b.d-a.d).slice(0,10)))}${card("Top 10 degrown hubs",moveTableHub([...hubMove].sort((a,b)=>a.d-b.d).slice(0,10)))}</div>
+  </div>
   <div class="sectionhead t3"><span class="eyebrow">RO movement</span><h2>Top 10 grown & degrown ROs (insurer-wise)</h2><div class="rule"></div></div>
+  <div id="s_intim_ro">
   <div class="grid g2">${card("Top 10 grown ROs",moveTableRO([...roMove].sort((a,b)=>b.d-a.d).slice(0,10)))}${card("Top 10 degrown ROs",moveTableRO([...roMove].sort((a,b)=>a.d-b.d).slice(0,10)))}</div>
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">Mix</span><h2>Insurer · segment · vehicle type · trend</h2><div class="rule"></div></div>
+  <div id="s_intim_mix">
   <div class="grid g3">${card("Insurer-wise",cv("i_insurer"))}${card("Segment-wise",cv("i_segment"))}${card("Vehicle-type-wise",cv("i_vtype"))}</div>
   <div class="grid g1"><div class="card tall"><h3><span class="dot"></span>Daily trend</h3>${cv("i_trend")}</div></div>
   <div class="grid" style="margin-top:14px">${card("Classification-wise — FTD / "+P.curLabel+" / "+P.prevLabel+" / "+p3h.join(" / "),
     table(["Classification","FTD",P.curLabel,P.prevLabel,...p3h],clsRows.map(x=>`<tr><td>${x.cl}</td><td class="num">${x.ftd}</td><td class="num">${x.cur}</td><td class="num">${x.prev}</td><td class="num">${x.m0}</td><td class="num">${x.m1}</td><td class="num">${x.m2}</td></tr>`).join("")||emptyRow(4+p3h.length)),"spanfull")}</div>
+  </div>
 
   <div class="sectionhead t4"><span class="eyebrow">Vehicles</span><h2>Top makes & models</h2><div class="rule"></div></div>
-  <div class="grid g2"><div class="card tall"><h3><span class="dot"></span>Top makes ${topNctl()}</h3>${cv("i_make")}</div><div class="card tall"><h3><span class="dot"></span>Top models</h3>${cv("i_model")}</div></div>`;
+  <div id="s_intim_makes">
+  <div class="grid g2"><div class="card tall"><h3><span class="dot"></span>Top makes ${topNctl()}</h3>${cv("i_make")}</div><div class="card tall"><h3><span class="dot"></span>Top models</h3>${cv("i_model")}</div></div>
+  </div>`;
 
   mkChart("i_insurer",barCfg(byInsurer.map(x=>x[0]),byInsurer.map(x=>x[1]),true,PAL,true));
   mkChart("i_segment",doughnutCfg(["Retail","PB","Tie-up"],["Retail","PB","Tie-up"].map(s=>segMix.get(s)||0),SEGC));
@@ -662,6 +881,7 @@ function renderSubmission(){
   else{trL=P.trend.map(mLabel);trD=P.trend.map(m=>sub.filter(r=>inMonth(r.finalD,m)).length);}
 
   $("#page-submission").innerHTML=`
+  <div id="s_sub_kpis">
   <div class="kpis">
     ${kpi("FTD Submission",fmt(ftd.length),`as of ${dayKey(state.asOf)}`,"c1")}
     ${kpi(P.curLabel+" Submission",fmt(cur.length),deltaSub(cur.length,prev.length,P.prevLabel),"c2")}
@@ -676,8 +896,10 @@ function renderSubmission(){
     ${kpi("Allocation → FSR TAT",fmt1(T.afsr)+" d","surveyor alloc → FSR","c4")}
     ${kpi("Invoice → FSR TAT",fmt1(T.ifsr)+" d","invoice → FSR","c3")}
   </div>
+  </div>
 
   <div class="sectionhead t2"><span class="eyebrow">Assessor</span><h2>Assessor-wise submission & TAT</h2><div class="rule"></div></div>
+  <div id="s_sub_assessor">
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div id="sa_tl_holder"></div>
     <div id="sa_zone_holder"></div>
@@ -685,16 +907,21 @@ function renderSubmission(){
   </div>
   <div class="card">${table(["Assessor","TL","Zone","FTD",P.curLabel,P.prevLabel,"Sub TAT(d)","Avg Settle","VRO TAT","Alloc→FSR","Inv→FSR"],
     aDetail.map(x=>`<tr><td>${x.a}</td><td>${x.tl}</td><td>${x.zone}</td><td class="num">${x.ftd}</td><td class="num">${x.mtd}</td><td class="num">${x.lmtd}</td><td class="num">${fmt1(x.sub)}</td><td class="num">${money(x.setl)}</td><td class="num">${minsToHrs(x.vro)}</td><td class="num">${fmt1(x.afsr)}d</td><td class="num">${fmt1(x.ifsr)}d</td></tr>`).join("")||emptyRow(11),{x:true})}</div>
+  </div>
 
   <div class="sectionhead t3"><span class="eyebrow">Portfolio</span><h2>Insurer · segment · product · trend</h2><div class="rule"></div></div>
+  <div id="s_sub_portfolio">
   <div class="grid g3">${card("Insurer-wise submission",cv("s_insurer"))}${card("Segment-wise submission",cv("s_segment"))}${card("Vehicle-type-wise submission",cv("s_vtype"))}</div>
   <div class="grid g1"><div class="card tall"><h3><span class="dot"></span>Daily submission trend</h3>${cv("s_trend")}</div></div>
   <div class="grid" style="margin-top:14px">${card("Product-wise detail",wise(r=>r.product,"Product"),"spanfull")}</div>
+  </div>
 
   <div class="sectionhead t4"><span class="eyebrow">Vehicles</span><h2>Make & model — TAT, settlement, ratio</h2><div class="rule"></div></div>
+  <div id="s_sub_vehicles">
   <div class="grid g2">
     <div class="card"><h3><span class="dot"></span>Make-wise ${topNctl()}</h3>${table(["Make","Subs","Avg TAT(d)","VRO TAT","Avg Settle","Settle Ratio"],byMakeArr.map(x=>`<tr><td>${x.k}</td><td class="num">${x.n}</td><td class="num">${fmt1(x.sub)}</td><td class="num">${minsToHrs(x.vro)}</td><td class="num">${money(x.setl)}</td><td class="num">${pct(x.ratio)}</td></tr>`).join("")||emptyRow(6))}</div>
     ${card("Model-wise detail",(()=>{const a=mmStats(cur,"model",topNPref);return table(["Model","Subs","Avg TAT(d)","Avg Settle","Settle Ratio"],a.map(x=>`<tr><td>${x.k}</td><td class="num">${x.n}</td><td class="num">${fmt1(x.sub)}</td><td class="num">${money(x.setl)}</td><td class="num">${pct(x.ratio)}</td></tr>`).join("")||emptyRow(5));})())}
+  </div>
   </div>`;
 
   mkChart("s_insurer",barCfg(byInsurer.map(x=>x[0]),byInsurer.map(x=>x[1]),true,PAL,true));
@@ -733,6 +960,7 @@ function renderOutstanding(){
       rs.map(x=>`<tr><td>${x.k}</td><td class="num">${x.n}</td><td class="num">${x.a}</td><td class="num">${pct(x.a/x.n)}</td><td class="num">${fmt(x.naFuture)}</td><td class="num">${fmt(x.naPast)}</td><td class="num">${fmt1(x.age)} d</td></tr>`).join("")||emptyRow(7));};
 
   $("#page-outstanding").innerHTML=`
+  <div id="s_os_kpis">
   <div class="kpis">
     ${kpi("Total Outstanding",fmt(os.length),`open as of ${dayKey(state.asOf)}`,"c1")}
     ${kpi("0–5 Days",fmt(byBucket[0]),pct(byBucket[0]/os.length),"c2")}
@@ -741,17 +969,23 @@ function renderOutstanding(){
     ${kpi("Above SLA",fmt(aboveSLA),pct(aboveSLA/os.length)+" of OS","c3")}
     ${kpi("Avg Aging",`${fmt1(avgAge)} d`,"open cases","c5")}
   </div>
+  </div>
 
   <div class="sectionhead t2"><span class="eyebrow">Grouping</span><h2>Aging · segment · vehicle · insurer</h2><div class="rule"></div></div>
+  <div id="s_os_aging">
   <div class="grid g4">${card("Aging buckets",cv("o_bucket"))}${card("Segment-wise OS",cv("o_segment"))}${card("Vehicle-type OS",cv("o_vtype"))}${card("Insurer-wise OS",cv("o_insurer"))}</div>
+  </div>
 
   <div class="sectionhead t3"><span class="eyebrow">Vehicles</span><h2>Make & model wise</h2><div class="rule"></div></div>
+  <div id="s_os_vehicles">
   <div class="grid g2">
     <div class="card"><h3><span class="dot"></span>Make-wise OS ${topNctl()}</h3>${table(["Make","OS","Avg Aging"],osMakeAge(os,"make",topNPref).map(x=>`<tr><td>${x.k}</td><td class="num">${x.n}</td><td class="num">${fmt1(x.age)} d</td></tr>`).join("")||emptyRow(3))}</div>
     <div class="card"><h3><span class="dot"></span>Model-wise OS</h3>${table(["Model","OS","Avg Aging"],osMakeAge(os,"model",topNPref).map(x=>`<tr><td>${x.k}</td><td class="num">${x.n}</td><td class="num">${fmt1(x.age)} d</td></tr>`).join("")||emptyRow(3))}</div>
   </div>
+  </div>
 
   <div class="sectionhead t4"><span class="eyebrow">SLA pressure</span><h2>By segment, zone, product &amp; assessor — OS, above-SLA &amp; next-action coverage</h2><div class="rule"></div></div>
+  <div id="s_os_sla">
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div class="f"><label>Elapsed ></label><select id="o_elapsed">${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${n===elN?"selected":""}>${n} day${n>1?"s":""}</option>`).join("")}</select></div>
     <div class="scope">Idle &gt; ${elN}d: <b>${fmt(idle.length)}</b> cases</div>
@@ -759,7 +993,8 @@ function renderOutstanding(){
   <div class="grid g1">${card("By segment",slaTable(r=>r.segment,"Segment"))}</div>
   <div class="grid g1">${card("By zone",slaTable(r=>r.zone,"Zone"))}</div>
   <div class="grid g1">${card("By product",slaTable(r=>r.product,"Product"))}</div>
-  <div class="grid g1">${card("By assessor",slaTable(r=>r.assessor||"—","Assessor"))}</div>`;
+  <div class="grid g1">${card("By assessor",slaTable(r=>r.assessor||"—","Assessor"))}</div>
+  </div>`;
 
   mkChart("o_bucket",barCfg(buckets,byBucket,false,[PAL[6],PAL[3],PAL[2]],true));
   mkChart("o_segment",doughnutCfg(["Retail","PB","Tie-up"],["Retail","PB","Tie-up"].map(s=>bySeg.get(s)||0),SEGC));
@@ -804,6 +1039,7 @@ function renderAssessor(){
   const segLabel=f.segment.length?(f.segment.length===1?f.segment[0]:f.segment.length+" segments"):"All segments";
 
   $("#page-assessor").innerHTML=`
+  <div id="s_ass_kpis">
   <div class="kpis">
     ${kpi("Active Assessors",fmt(rs.length),"in "+P.scope,"c1")}
     ${kpi(P.curLabel+" Submissions",fmt(totSub),deltaSub(totSub,rs.reduce((s,x)=>s+x.subP,0),P.prevLabel),"c2")}
@@ -811,7 +1047,9 @@ function renderAssessor(){
     ${kpi("Outstanding",fmt(totOS),"open across assessors","c3")}
     ${kpi("Above SLA",fmt(rs.reduce((s,x)=>s+x.aboveSLA,0)),"aging breaches","c5")}
   </div>
+  </div>
   <div class="sectionhead t2"><span class="eyebrow">Performance · ${P.scope}</span><h2>Top 3 & Bottom 3 assessors — ${segLabel}</h2><div class="rule"></div></div>
+  <div id="s_ass_perf">
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div id="a_seg_holder"></div>
     <div class="scope">Eligibility: 80+ submissions in ${segLabel.toLowerCase()} · ${fmt(elig.length)} eligible</div>
@@ -821,8 +1059,10 @@ function renderAssessor(){
     <div class="card"><h3><span class="dot"></span>Bottom 3 — needs attention</h3>${podium(bot3,"bad",x=>`Sub TAT ${fmt1(x.overallTAT)}d · OS age ${fmt1(x.osTAT)}d · VRO ${minsToHrs(x.vroTAT)}`)}</div>
   </div>
   <div class="grid g2" style="margin-top:14px">${card("Assessor-wise submission",cv("a_com"))}${card("Outstanding aging split",cv("a_os"))}</div>
+  </div>
 
   <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Full assessor sheet · filter by TL, Zone & Segment</h2><div class="rule"></div></div>
+  <div id="s_ass_scorecard">
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div id="a_tl_holder"></div>
     <div id="a_zone_holder"></div>
@@ -830,7 +1070,8 @@ function renderAssessor(){
   </div>
   <div class="card">${table(["Assessor","Zone","TL","TGT","FTD Sub",P.curLabel+" Sub",P.prevLabel,"Com %","Req","FTD Alloc",P.curLabel+" Alloc","OS","0-5","6-15",">15","% >15","2W","4W","CV","Overall TAT(d)","VRO TAT","Inv→Sub(d)","OS TAT(d)","Avg Settle","OS Retail","OS Tie-up","OS PB","Above SLA"],
     rs.map(x=>`<tr><td>${x.a}</td><td>${x.zone}</td><td>${x.tl}</td><td class="num">${x.t||"–"}</td><td class="num">${x.ftdSub}</td><td class="num">${x.sub}</td><td class="num">${x.subP}</td><td class="num">${x.com==null?"–":pct(x.com)}</td><td class="num">${x.req==null?"–":x.req}</td><td class="num">${x.ftdAlloc}</td><td class="num">${x.mtdAlloc}</td><td class="num">${x.os}</td><td class="num">${x.s05}</td><td class="num">${x.s615}</td><td class="num">${x.sA15}</td><td class="num">${pct(x.p15)}</td><td class="num">${x.w2}</td><td class="num">${x.w4}</td><td class="num">${x.cv}</td><td class="num">${fmt1(x.overallTAT)}</td><td class="num">${minsToHrs(x.vroTAT)}</td><td class="num">${fmt1(x.invSub)}</td><td class="num">${fmt1(x.osTAT)}</td><td class="num">${money(x.setl)}</td><td class="num">${x.osRetail}</td><td class="num">${x.osTie}</td><td class="num">${x.osPB}</td><td class="num">${x.aboveSLA}</td></tr>`).join(""),{x:true})}
-    ${totTgt?"":'<div class="footnote miss">No targets read — ensure the Assessor sheet has a TGT column.</div>'}</div>`;
+    ${totTgt?"":'<div class="footnote miss">No targets read — ensure the Assessor sheet has a TGT column.</div>'}</div>
+  </div>`;
   mkChart("a_com",barCfg(topB.map(x=>x.a),topB.map(x=>x.sub),true,PAL,true));
   mkChart("a_os",{type:"bar",data:{labels:topB.map(x=>x.a),datasets:[{label:"0-5",data:topB.map(x=>x.s05),backgroundColor:PAL[6]},{label:"6-15",data:topB.map(x=>x.s615),backgroundColor:PAL[3]},{label:">15",data:topB.map(x=>x.sA15),backgroundColor:PAL[2]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
   $("#a_seg_holder").innerHTML=mselHTML("a_seg","Segment",segOpts,f.segment);
@@ -871,6 +1112,7 @@ function renderCCE(){
   const top3=ranked.slice(0,3).map(x=>({name:x.c,...x})), bot3=ranked.slice(-3).reverse().map(x=>({name:x.c,...x}));
   const topB=rs.slice(0,12);
   $("#page-cce").innerHTML=`
+  <div id="s_cce_kpis">
   <div class="kpis">
     ${kpi("Active CCEs",fmt(rs.length),"in "+P.scope,"c1")}
     ${kpi(P.curLabel+" Handled",fmt(totMtd),deltaSub(totMtd,rs.reduce((s,x)=>s+x.lmtd,0),P.prevLabel),"c2")}
@@ -878,13 +1120,17 @@ function renderCCE(){
     ${kpi("Outstanding",fmt(totOS),"in CCE pipeline","c3")}
     ${kpi("Survey / Assign Pending",`${fmt(rs.reduce((s,x)=>s+x.surveyPending,0))} / ${fmt(rs.reduce((s,x)=>s+x.assignPending,0))}`,"pending actions","c5")}
   </div>
+  </div>
   <div class="sectionhead t2"><span class="eyebrow">Performance · ${P.scope}</span><h2>Top 3 & Bottom 3 CCE — fastest link & survey TAT</h2><div class="rule"></div></div>
+  <div id="s_cce_perf">
   <div class="grid g2">
     <div class="card"><h3><span class="dot"></span>Top 3 CCE</h3>${podium(top3,"good",x=>`Link ${minsToHrs(x.linkTAT)} · Survey ${minsToHrs(x.compTAT)}`)}</div>
     <div class="card"><h3><span class="dot"></span>Bottom 3 CCE</h3>${podium(bot3,"bad",x=>`Link ${minsToHrs(x.linkTAT)} · Survey ${minsToHrs(x.compTAT)}`)}</div>
   </div>
   <div class="grid g2" style="margin-top:14px">${card("CCE-wise handled",cv("c_com"))}${card("Outstanding split",cv("c_pipe"))}</div>
+  </div>
   <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Full CCE sheet · filter by TL & Zone</h2><div class="rule"></div></div>
+  <div id="s_cce_scorecard">
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div id="c_tl_holder"></div>
     <div id="c_zone_holder"></div>
@@ -892,7 +1138,8 @@ function renderCCE(){
   </div>
   <div class="card">${table(["CCE","Zone","TL","TGT","FTD",P.curLabel,P.prevLabel,"Survey Pend","Assign Pend","Other Pend","Outstanding","Link Shared","Survey Comp","Link TAT","Survey TAT"],
     rs.map(x=>`<tr><td>${x.c}</td><td>${x.zone}</td><td>${x.tl}</td><td class="num">${x.t||"–"}</td><td class="num">${x.ftd}</td><td class="num">${x.mtd}</td><td class="num">${x.lmtd}</td><td class="num">${x.surveyPending}</td><td class="num">${x.assignPending}</td><td class="num">${x.otherPending}</td><td class="num">${x.outstanding}</td><td class="num">${x.linkShared}</td><td class="num">${x.surveyCompleted}</td><td class="num">${minsToHrs(x.linkTAT)}</td><td class="num">${minsToHrs(x.compTAT)}</td></tr>`).join(""),{x:true})}
-    ${totTgt?"":'<div class="footnote miss">No targets read — ensure the CCE sheet has a TGT column.</div>'}</div>`;
+    ${totTgt?"":'<div class="footnote miss">No targets read — ensure the CCE sheet has a TGT column.</div>'}</div>
+  </div>`;
   mkChart("c_com",barCfg(topB.map(x=>x.c),topB.map(x=>x.mtd),true,PAL,true));
   mkChart("c_pipe",{type:"bar",data:{labels:topB.map(x=>x.c),datasets:[{label:"Survey Pend",data:topB.map(x=>x.surveyPending),backgroundColor:PAL[3]},{label:"Assign Pend",data:topB.map(x=>x.assignPending),backgroundColor:PAL[5]},{label:"Other",data:topB.map(x=>x.otherPending),backgroundColor:PAL[1]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
   $("#c_tl_holder").innerHTML=mselHTML("c_tl","TL",tlOpts,f.tl);
@@ -926,6 +1173,7 @@ function renderUpload(){
   const unmatched=cur.filter(u=>!u.matched).length, top=rs.slice(0,12);
 
   $("#page-upload").innerHTML=`
+  <div id="s_upl_kpis">
   <div class="kpis">
     ${kpi("FTD Uploaded",fmt(ftd.length),`as of ${dayKey(state.asOf)}`,"c1")}
     ${kpi(P.curLabel+" Uploaded",fmt(cur.length),deltaSub(cur.length,prev.length,P.prevLabel),"c2")}
@@ -933,14 +1181,21 @@ function renderUpload(){
     ${kpi("Avg Email → Upload",fmt1(avgEmailUpl)+" d","email received → uploaded","c3")}
     ${kpi("Matched to Base",pct(matched.length/(cur.length||1)),`${fmt(unmatched)} unmatched`,"c5")}
   </div>
+  </div>
   <div class="sectionhead t2"><span class="eyebrow">Throughput</span><h2>By person, insurer &amp; weekday</h2><div class="rule"></div></div>
+  <div id="s_upl_throughput">
   <div class="grid g3">${card("Uploader-wise volume",cv("u_vol"))}${card("Insurer split",cv("u_ins"))}<div class="card tall"><h3><span class="dot"></span>Weekday trend</h3>${cv("u_dow")}</div></div>
+  </div>
   <div class="sectionhead t3"><span class="eyebrow">Lag</span><h2>FSR → Email → Upload TAT</h2><div class="rule"></div></div>
+  <div id="s_upl_lag">
   <div class="grid g2">${card("Upload TAT distribution (FSR→Upload)",cv("u_tat"))}${card("Uploader avg TAT — FSR→Email vs Email→Upload",cv("u_tatper"))}</div>
+  </div>
   <div class="sectionhead t4"><span class="eyebrow">Scorecard</span><h2>Uploading team</h2><div class="rule"></div></div>
+  <div id="s_upl_scorecard">
   <div class="card">${table(["Uploader","FTD",P.curLabel,"Avg/Day",...insurerNames,"FSR→Email(d)","Email→Upload(d)","Total TAT(d)"],
     rs.map(x=>`<tr><td>${x.nm}</td><td class="num">${x.ftd}</td><td class="num">${x.n}</td><td class="num">${fmt1(x.avgDay)}</td>${insurerNames.map(ins=>`<td class="num">${x.byIns[ins]||0}</td>`).join("")}<td class="num">${fmt1(x.fsrEmail)}</td><td class="num">${fmt1(x.emailUpl)}</td><td class="num">${fmt1(x.tat)}</td></tr>`).join("")||emptyRow(7+insurerNames.length))}
-    <div class="footnote">FSR→Email = Final Report Date → Email Received Date (falls back to FSR date if email date is blank). Email→Upload = Email Received Date → Upload Date. ${unmatched?`<span class="miss">${unmatched} unmatched, excluded from TAT.</span>`:""}</div></div>`;
+    <div class="footnote">FSR→Email = Final Report Date → Email Received Date (falls back to FSR date if email date is blank). Email→Upload = Email Received Date → Upload Date. ${unmatched?`<span class="miss">${unmatched} unmatched, excluded from TAT.</span>`:""}</div></div>
+  </div>`;
   mkChart("u_vol",barCfg(top.map(x=>x.nm),top.map(x=>x.n),true,PAL,true));
   mkChart("u_ins",doughnutCfg([...insTally.keys()],[...insTally.values()],PAL));
   mkChart("u_dow",barCfg(dowL,dowD,false,PAL,true));
@@ -962,6 +1217,7 @@ function renderHub(){
   const totT=rs.reduce((s,x)=>s+x.t,0),totSub=rs.reduce((s,x)=>s+x.sub,0),totIntim=rs.reduce((s,x)=>s+x.intim,0),totOS=rs.reduce((s,x)=>s+x.os,0);
   const top=rs.slice(0,12);
   $("#page-hub").innerHTML=`
+  <div id="s_hub_kpis">
   <div class="kpis">
     ${kpi("Active Hubs",fmt(rs.length),"with activity / target","c1")}
     ${kpi(P.curLabel+" Intimation",fmt(totIntim),"across hubs","c2")}
@@ -969,11 +1225,16 @@ function renderHub(){
     ${kpi("Outstanding",fmt(totOS),"open across hubs","c3")}
     ${kpi("Total Target",fmt(totT),"Hub col K","c5")}
   </div>
+  </div>
   <div class="sectionhead t2"><span class="eyebrow">Distribution</span><h2>Zone intimation · top intimation hubs</h2><div class="rule"></div></div>
+  <div id="s_hub_dist">
   <div class="grid g2">${card("Zone-wise intimation",cv("h_zone"))}${card("Top Intimation Hubs",cv("h_tgt"))}</div>
+  </div>
   <div class="sectionhead t4"><span class="eyebrow">Master</span><h2>Hub details</h2><div class="rule"></div></div>
+  <div id="s_hub_master">
   <div class="card">${table(["Hub (Office)","Insurer","Zone","Classification","RO","State","City","Approved","Target",P.curLabel+" Intim",P.curLabel+" Sub","OS","Com %"],
-    rs.map(x=>`<tr><td>${x.off}</td><td>${x.insurer}</td><td>${x.zone}</td><td>${x.cls}</td><td>${x.ro}</td><td>${x.state}</td><td>${x.city||"–"}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td class="num">${x.t||"–"}</td><td class="num">${x.intim}</td><td class="num">${x.sub}</td><td class="num">${x.os}</td><td class="num">${x.com==null?"–":pct(x.com)}</td></tr>`).join(""),{x:true})}</div>`;
+    rs.map(x=>`<tr><td>${x.off}</td><td>${x.insurer}</td><td>${x.zone}</td><td>${x.cls}</td><td>${x.ro}</td><td>${x.state}</td><td>${x.city||"–"}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td class="num">${x.t||"–"}</td><td class="num">${x.intim}</td><td class="num">${x.sub}</td><td class="num">${x.os}</td><td class="num">${x.com==null?"–":pct(x.com)}</td></tr>`).join(""),{x:true})}</div>
+  </div>`;
   mkChart("h_zone",barCfg([...zoneMix.keys()],[...zoneMix.values()],true,PAL,true));
   mkChart("h_tgt",barCfg(top.map(x=>`${x.insurer||"—"} · ${x.off}`),top.map(x=>x.intim),true,PAL,true));
 }
@@ -1003,6 +1264,7 @@ function renderRO(){
   const totTgt=rs.reduce((s,x)=>s+x.tgt,0),totMtd=rs.reduce((s,x)=>s+x.mtd,0),totOS=rs.reduce((s,x)=>s+x.os,0);
   const catCount=tally(rs,x=>x.cat); const catOrder=["Above 200","100-200","50-100","20-50","Minimal"]; const top=rs.slice(0,12);
   $("#page-ro").innerHTML=`
+  <div id="s_ro_kpis">
   <div class="kpis">
     ${kpi("ROs",fmt(rs.length),"in scope","c1")}
     ${kpi(P.curLabel+" Intimation",fmt(totMtd),"across ROs","c2")}
@@ -1010,11 +1272,16 @@ function renderRO(){
     ${kpi("Outstanding",fmt(totOS),"open across ROs","c3")}
     ${kpi("Grown ROs",fmt(rs.filter(x=>x.grown>0).length),"vs "+P.prevLabel,"c5")}
   </div>
+  </div>
   <div class="sectionhead t2"><span class="eyebrow">Categories</span><h2>RO category (by peak month) &amp; top ROs</h2><div class="rule"></div></div>
+  <div id="s_ro_cat">
   <div class="grid g2">${card("RO category distribution",cv("r_cat"))}${card("Top ROs",cv("r_tgt"))}</div>
+  </div>
   <div class="sectionhead t4"><span class="eyebrow">Master</span><h2>RO performance (Insurer sheet)</h2><div class="rule"></div></div>
+  <div id="s_ro_master">
   <div class="card">${table(["RO Name","Insurer","Responsible","Zone","State","Approved","Activation","Max","Category","TGT","FTD",P.curLabel,P.prevLabel,...p3h,"Com %","Grown","OS","0-5","6-15",">15","Beyond 15%"],
-    rs.map(x=>`<tr><td>${x.roName}</td><td>${x.insurer}</td><td>${x.responsible}</td><td>${x.zone}</td><td>${x.state}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td>${x.activation}</td><td class="num">${x.max}</td><td>${x.cat}</td><td class="num">${x.tgt||"–"}</td><td class="num">${x.ftd}</td><td class="num">${x.mtd}</td><td class="num">${x.lmtd}</td><td class="num">${x.m0}</td><td class="num">${x.m1}</td><td class="num">${x.m2}</td><td class="num">${x.com==null?"–":pct(x.com)}</td><td class="num ${x.grown>=0?'delta-up':'delta-dn'}">${x.grown>=0?"+":""}${x.grown}</td><td class="num">${x.os}</td><td class="num">${x.s05}</td><td class="num">${x.s615}</td><td class="num">${x.sA15}</td><td class="num">${pct(x.beyond15)}</td></tr>`).join(""),{x:true})}</div>`;
+    rs.map(x=>`<tr><td>${x.roName}</td><td>${x.insurer}</td><td>${x.responsible}</td><td>${x.zone}</td><td>${x.state}</td><td>${x.approved?`<span class="badge ${has(x.approved,'Unapp')?'b-un':'b-ap'}">${x.approved}</span>`:"–"}</td><td>${x.activation}</td><td class="num">${x.max}</td><td>${x.cat}</td><td class="num">${x.tgt||"–"}</td><td class="num">${x.ftd}</td><td class="num">${x.mtd}</td><td class="num">${x.lmtd}</td><td class="num">${x.m0}</td><td class="num">${x.m1}</td><td class="num">${x.m2}</td><td class="num">${x.com==null?"–":pct(x.com)}</td><td class="num ${x.grown>=0?'delta-up':'delta-dn'}">${x.grown>=0?"+":""}${x.grown}</td><td class="num">${x.os}</td><td class="num">${x.s05}</td><td class="num">${x.s615}</td><td class="num">${x.sA15}</td><td class="num">${pct(x.beyond15)}</td></tr>`).join(""),{x:true})}</div>
+  </div>`;
   mkChart("r_cat",barCfg(catOrder,catOrder.map(c=>catCount.get(c)||0),false,PAL,true));
   mkChart("r_tgt",barCfg(top.map(x=>`${x.insurer||"—"} · ${x.roName}`),top.map(x=>x.mtd),true,PAL,true));
 }
@@ -1779,9 +2046,15 @@ function fillFilters(){
     {k:"segment",label:"Segment",vals:["Retail","PB","Tie-up"].filter(s=>DB.rows.some(r=>r.segment===s))},
     {k:"vtype",label:"Vehicle Type",vals:[...new Set(DB.rows.map(r=>r.vtype).filter(v=>v&&v!=="—"))].sort()}
   ];
+  let fltTimer=null;
   defs.forEach(d=>{
     $("#flt_"+d.k+"_holder").innerHTML=mselHTML("flt_"+d.k,d.label,d.vals,state.flt[d.k]);
-    wireMsel("flt_"+d.k,vals=>{state.flt[d.k]=vals;$("#flt_"+d.k+"_btn .lbl").textContent=vals.length===0?"All":(vals.length===1?vals[0]:vals.length+" selected");$("#flt_"+d.k+"_btn").classList.toggle("active",vals.length>0);renderCurrent();});
+    wireMsel("flt_"+d.k,vals=>{
+      state.flt[d.k]=vals;
+      // debounce: wait 400ms after last checkbox change before re-rendering, so panel stays open
+      clearTimeout(fltTimer);
+      fltTimer=setTimeout(()=>renderCurrent(),400);
+    });
   });
 }
 $("#fltReset").onclick=()=>{state.flt={insurer:[],zone:[],segment:[],vtype:[]};fillFilters();renderCurrent();};
@@ -1805,6 +2078,7 @@ function processWorkbook(arrayBuffer,sourceName){
     $("#fileName").textContent=sourceName+" · "+fmt(DB.rows.length)+" rows";
     ["#fyCtrl","#monthCtrl","#dateCtrl","#activeCtrl"].forEach(s=>$(s).style.display="flex");
     $("#tabs").style.display="flex";$("#filterbar").style.display="flex";$("#landing").style.display="none";
+    $("#pdfCtrl").style.display="flex";
     fillFilters();
     const nA=Object.keys(DB.aMeta).length,nC=Object.keys(DB.cMeta).length;
     toast("Loaded "+fmt(DB.rows.length)+" cases · "+nA+" assessors · "+nC+" CCEs");
