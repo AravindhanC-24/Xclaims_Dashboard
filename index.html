@@ -48,7 +48,7 @@
   nav.tabs{position:sticky; top:56px; z-index:40; background:var(--bg); display:flex; gap:3px; padding:8px 16px 0; border-bottom:1px solid var(--line); flex-wrap:wrap}
   nav.tabs button{background:none; border:none; padding:11px 14px 12px; cursor:pointer; font:inherit; font-weight:700; font-size:13px; color:var(--muted); border-radius:11px 11px 0 0}
   nav.tabs button .n{font-family:var(--mono); font-size:10px; color:var(--faint); margin-right:6px}
-  nav.tabs button:hover{color:var(--ink); background:var(--bg2)}
+  nav.tabs button:hover{color:var(--ink); background:#f4f6fc}
   nav.tabs button.active{color:var(--p1); background:var(--card); box-shadow:0 -2.5px 0 var(--p1) inset}
   nav.tabs button.active .n{color:var(--p1)}
 
@@ -62,13 +62,14 @@
   .msel-btn .lbl{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .msel-btn .car{font-size:9px; color:var(--muted); flex:none}
   .msel-btn.active{border-color:var(--p1)}
-  .msel-panel{position:absolute; top:calc(100% + 5px); left:0; z-index:60; background:#fff; border:1px solid var(--line); border-radius:11px; box-shadow:0 8px 28px rgba(31,37,64,.14); min-width:200px; max-width:280px; max-height:280px; overflow-y:auto; padding:6px; display:none}
+  .msel-panel{position:absolute; top:calc(100% + 5px); left:0; z-index:60; background:#fff; border:1px solid var(--line); border-radius:11px; box-shadow:0 8px 28px rgba(31,37,64,.14); min-width:200px; max-width:280px; max-height:280px; overflow-y:auto; padding:6px; display:none; user-select:none}
   .msel-panel.open{display:block}
   .msel-row{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:7px; cursor:pointer; font-size:12.5px}
   .msel-row:hover{background:var(--bg)}
-  .msel-row input{margin:0; accent-color:var(--p1)}
+  .msel-row input{margin:0; accent-color:var(--p1); pointer-events:none; flex:none}
+  .msel-row span{pointer-events:none}
   .msel-actions{display:flex; gap:6px; padding:4px 6px 8px; border-bottom:1px solid var(--line2); margin-bottom:4px}
-  .msel-actions button{flex:1; border:none; background:var(--bg2); color:var(--p1); border-radius:7px; padding:5px 0; font-size:11px; font-weight:700; cursor:pointer}
+  .msel-actions button{flex:1; border:none; background:#f4f6fc; color:var(--p1); border-radius:7px; padding:5px 0; font-size:11px; font-weight:700; cursor:pointer}
   .filterbar .scope{font-size:11px;color:var(--muted);align-self:center} .filterbar .scope b{color:var(--p1)}
 
   main{padding:16px 22px 44px; max-width:1560px; margin:0 auto}
@@ -110,7 +111,7 @@
   .dmodal-box{position:relative; background:var(--card); border-radius:16px; width:min(720px,92vw); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(20,24,40,.35); padding:0}
   .dmodal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--card); border-radius:16px 16px 0 0}
   .dmodal-head h3{margin:0; font-size:16px; font-weight:800; color:var(--ink)}
-  .dmodal-close{border:none; background:var(--bg2); color:var(--ink); width:30px; height:30px; border-radius:9px; font-size:14px; cursor:pointer}
+  .dmodal-close{border:none; background:#f4f6fc; color:var(--ink); width:30px; height:30px; border-radius:9px; font-size:14px; cursor:pointer}
   .dmodal-body{padding:18px 20px 22px}
   .dmodal-body .mapwrap{min-height:380px}
   .dmodal-body .mapwrap svg{height:340px}
@@ -132,7 +133,7 @@
   table.sortable th{cursor:pointer; user-select:none} table.sortable th:hover{color:var(--p1)}
   table.sortable th::after{content:"\2195"; opacity:.25; margin-left:4px; font-size:10px}
   table.sortable th.sortAsc::after{content:"\2191"; opacity:.9; color:var(--p1)} table.sortable th.sortDesc::after{content:"\2193"; opacity:.9; color:var(--p1)}
-  tbody tr:hover{background:var(--bg2)}
+  tbody tr:hover{background:#f4f6fc}
   .scrolly{max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:12px}
   .scrollx{overflow-x:auto; border:1px solid var(--line); border-radius:12px}
   .num{font-family:var(--mono); font-size:12px}
@@ -172,7 +173,7 @@
   .pdfmodal-head{padding:18px 22px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:18px 18px 0 0;z-index:1}
   .pdfmodal-head h3{margin:0;font-size:17px;font-weight:800;color:var(--ink)}
   .pdfmodal-head p{margin:3px 0 0;font-size:12px;color:var(--muted)}
-  .pdfmodal-close{border:none;background:var(--bg2);color:var(--ink);width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer;flex:none}
+  .pdfmodal-close{border:none;background:#f4f6fc;color:var(--ink);width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer;flex:none}
   .pdfmodal-body{padding:18px 22px;flex:1}
   .pdfmodal-tab{margin-bottom:20px}
   .pdfmodal-tab-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line2);margin-bottom:8px;display:flex;align-items:center;gap:8px}
@@ -300,26 +301,56 @@ function mselHTML(id,label,options,selected){
     <button type="button" class="msel-btn${sel.length?" active":""}" id="${id}_btn"><span class="lbl">${lbl}</span><span class="car">▾</span></button>
     <div class="msel-panel" id="${id}_panel">
       <div class="msel-actions"><button type="button" data-act="all">All</button><button type="button" data-act="none">None</button></div>
-      ${options.map(o=>`<label class="msel-row"><input type="checkbox" value="${o}" ${sel.includes(o)?"checked":""}>${o}</label>`).join("")}
+      ${options.map(o=>`<div class="msel-row" data-val="${String(o).replace(/"/g,'&quot;')}"><input type="checkbox" value="${String(o).replace(/"/g,'&quot;')}" ${sel.includes(o)?"checked":""}><span>${o}</span></div>`).join("")}
     </div>
   </div></div>`;
 }
 function wireMsel(id,onChange){
   const wrap=$("#"+id+"_wrap"); if(!wrap)return;
   const btn=$("#"+id+"_btn"), panel=$("#"+id+"_panel");
-  btn.onclick=e=>{e.stopPropagation();$$(".msel-panel.open").forEach(p=>{if(p!==panel)p.classList.remove("open");});panel.classList.toggle("open");};
-  // stop all clicks inside panel from bubbling to the document dismiss handler
-  panel.addEventListener("click",e=>e.stopPropagation());
-  panel.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.onchange=e=>{
-    const vals=[...panel.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);
-    updateMselLabel(id,vals);
-    onChange(vals);
-  };});
-  panel.querySelectorAll('[data-act]').forEach(b=>{b.onclick=e=>{e.stopPropagation();
-    const cbs=[...panel.querySelectorAll('input[type="checkbox"]')];
-    if(b.dataset.act==="all"){cbs.forEach(c=>c.checked=true);const vals=cbs.map(c=>c.value);updateMselLabel(id,vals);onChange(vals);}
-    else{cbs.forEach(c=>c.checked=false);updateMselLabel(id,[]);onChange([]);}
-  };});
+
+  // Toggle open/close on button — stop propagation so document dismiss handler doesn't fire
+  btn.addEventListener("mousedown",e=>{
+    e.preventDefault(); e.stopPropagation();
+    const isOpen=panel.classList.contains("open");
+    $$(".msel-panel.open").forEach(p=>{if(p!==panel)p.classList.remove("open");});
+    panel.classList.toggle("open",!isOpen);
+    _openMselId=isOpen?null:panel.id;
+  });
+
+  // ALL events inside panel: stop propagation so nothing bubbles to document dismiss
+  panel.addEventListener("mousedown",e=>{e.preventDefault();e.stopPropagation();});
+  panel.addEventListener("click",e=>{e.stopPropagation();});
+
+  // Handle row clicks — toggle checkbox without closing panel
+  panel.querySelectorAll(".msel-row").forEach(row=>{
+    row.addEventListener("mousedown",e=>{
+      e.preventDefault();e.stopPropagation();
+      const cb=row.querySelector('input[type="checkbox"]');
+      if(cb){
+        cb.checked=!cb.checked;
+        const vals=[...panel.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);
+        updateMselLabel(id,vals);
+        onChange(vals);
+      }
+    });
+  });
+
+  // All / None action buttons
+  panel.querySelectorAll('[data-act]').forEach(b=>{
+    b.addEventListener("mousedown",e=>{
+      e.preventDefault();e.stopPropagation();
+      const cbs=[...panel.querySelectorAll('input[type="checkbox"]')];
+      if(b.dataset.act==="all"){
+        cbs.forEach(c=>c.checked=true);
+        const vals=cbs.map(c=>c.value);
+        updateMselLabel(id,vals);onChange(vals);
+      } else {
+        cbs.forEach(c=>c.checked=false);
+        updateMselLabel(id,[]);onChange([]);
+      }
+    });
+  });
 }
 function updateMselLabel(id,vals){
   const btn=$("#"+id+"_btn"); if(!btn)return;
@@ -327,7 +358,15 @@ function updateMselLabel(id,vals){
   lbl.textContent=vals.length===0?"All":(vals.length===1?vals[0]:vals.length+" selected");
   btn.classList.toggle("active",vals.length>0);
 }
-document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".msel"))return;$$(".msel-panel.open").forEach(p=>p.classList.remove("open"));});
+// Close open panels when clicking/pressing outside any .msel
+document.addEventListener("mousedown",e=>{
+  if(e.target.closest&&e.target.closest(".msel"))return;
+  $$(".msel-panel.open").forEach(p=>p.classList.remove("open"));
+});
+// Track last-open panel id so it can be restored after a re-render
+let _openMselId=null;
+function _saveOpenPanel(){_openMselId=null;const op=document.querySelector(".msel-panel.open");if(op)_openMselId=op.id;}
+function _restoreOpenPanel(){if(_openMselId){const p=document.getElementById(_openMselId);if(p)p.classList.add("open");}}
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const fmt=n=>(n==null||isNaN(n))?"–":Math.round(n).toLocaleString("en-IN");
@@ -689,153 +728,217 @@ function closePdfModal(){$("#pdfModal").classList.remove("open");}
 function generatePdf(){
   if(!pdfChecked.size){toast("Select at least one section.");return;}
   closePdfModal();
-  toast("Preparing PDF… please wait.");
+  toast("Preparing PDF… rendering all sections, please wait.");
 
-  // Step 1: make sure every selected tab has been rendered
   const tabsNeeded=new Set();
   Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
     if(secs.some(s=>pdfChecked.has(s.id)))tabsNeeded.add(tab);
   });
 
-  // Render each needed tab (if not already rendered or if its page is empty)
   const savedTab=current;
-  tabsNeeded.forEach(tab=>{
-    const page=document.getElementById("page-"+tab);
-    if(!page)return;
-    // render if the page has no real content yet
-    const needsRender=!page.querySelector(".kpis,.card,.kpi");
-    if(needsRender){
-      current=tab; // temporarily set so RENDER functions work
-      try{RENDER[tab]&&RENDER[tab]();}catch(e){console.warn("PDF pre-render failed for",tab,e);}
-    }
-  });
-  current=savedTab; // restore
-
-  // Step 2: collect chart images (canvas → dataURL) BEFORE building print window
-  // so charts are visible (current tab's charts exist in DOM)
   const chartImages={};
-  document.querySelectorAll("canvas[id]").forEach(c=>{
-    try{chartImages[c.id]=c.toDataURL("image/png");}catch(e){}
-  });
-  // Also capture charts from other tabs that were just rendered
-  // Re-render the currently-active tab to restore its charts, capture all tabs
-  // We need to render tabs sequentially and capture after each
+  const mapImages={};
   const tabOrder=[...tabsNeeded];
   let captureIdx=0;
 
+  // Disable Chart.js animation so canvases paint synchronously
+  const origAnimation=Chart.defaults.animation;
+  Chart.defaults.animation=false;
+
   function captureNextTab(){
     if(captureIdx>=tabOrder.length){
-      buildPrintWindow(chartImages);
-      // restore original tab
+      // Re-enable animation and restore original tab
+      Chart.defaults.animation=origAnimation;
+      $$(".page").forEach(p=>p.classList.remove("active","pdf-capturing"));
+      const origPage=document.getElementById("page-"+savedTab);
+      if(origPage)origPage.classList.add("active");
       current=savedTab;
-      try{RENDER[savedTab]&&RENDER[savedTab]();}catch(e){}
+      try{if(typeof RENDER[savedTab]==="function")RENDER[savedTab]();}catch(e){}
+      buildPrintWindow(chartImages,mapImages);
       return;
     }
+
     const tab=tabOrder[captureIdx++];
     const page=document.getElementById("page-"+tab);
     if(!page){captureNextTab();return;}
-    // show page briefly to render charts
-    $$(".page").forEach(p=>p.classList.remove("active"));
-    page.classList.add("active");
+
+    // Make this tab the active, visible, full-size page
+    $$(".page").forEach(p=>p.classList.remove("active","pdf-capturing"));
+    page.classList.add("active","pdf-capturing");
     current=tab;
-    try{RENDER[tab]&&RENDER[tab]();}catch(e){console.warn(e);}
-    // wait a tick for Chart.js to render
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      document.querySelectorAll("canvas[id]").forEach(c=>{
-        try{if(!chartImages[c.id])chartImages[c.id]=c.toDataURL("image/png");}catch(e){}
+
+    // Render the tab — may return a Promise (density) or undefined (sync tabs)
+    let renderDone;
+    try{renderDone=Promise.resolve(RENDER[tab]?RENDER[tab]():undefined);}
+    catch(e){console.warn("Render err",tab,e);renderDone=Promise.resolve();}
+
+    renderDone.then(()=>{
+      // Force all Chart.js instances on this page to repaint immediately (no animation)
+      Object.entries(charts).forEach(([id,ch])=>{
+        try{if(document.getElementById(id))ch.update("none");}catch(e){}
       });
-      captureNextTab();
-    }));
+
+      // Wait: 3 rAFs + 400ms gives Chart.js + SVG map time to fully paint
+      requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        setTimeout(()=>{
+          // ── Capture canvas charts ──
+          page.querySelectorAll("canvas[id]").forEach(c=>{
+            try{
+              const img=c.toDataURL("image/png");
+              // blank canvas is ~5-6kB; anything larger is real content
+              if(img&&img.length>6000)chartImages[c.id]=img;
+              else if(img)chartImages[c.id]=img; // keep even small ones
+            }catch(e){console.warn("Canvas capture err",c.id,e);}
+          });
+
+          // ── Capture SVG maps ──
+          page.querySelectorAll(".mapwrap").forEach((wrap,wi)=>{
+            const svg=wrap.querySelector("svg");
+            if(!svg)return;
+            const wrapId=wrap.id||(tab+"_map_"+wi);
+            try{
+              const ser=new XMLSerializer();
+              const clone=svg.cloneNode(true);
+              clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+              // Ensure explicit dimensions so browsers render it at right size
+              const vb=clone.getAttribute("viewBox")||"0 0 560 520";
+              const vbParts=vb.split(/\s+/);
+              if(!clone.getAttribute("width"))clone.setAttribute("width",vbParts[2]||"560");
+              if(!clone.getAttribute("height"))clone.setAttribute("height",vbParts[3]||"520");
+              const svgStr=ser.serializeToString(clone);
+              mapImages[wrapId]="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(svgStr)));
+            }catch(e){console.warn("SVG map capture err",wrapId,e);}
+          });
+
+          captureNextTab();
+        }, tab==="density"?800:300); // density needs extra time for GeoJSON fetch + SVG render
+      })));
+    }).catch(e=>{console.warn("Render promise err",tab,e);captureNextTab();});
   }
+
   captureNextTab();
 }
 
-function buildPrintWindow(chartImages){
-  // Collect CSS from the current document to inject into print window
-  const styleSheets=[...document.styleSheets].map(ss=>{
-    try{return [...ss.cssRules].map(r=>r.cssText).join("\n");}catch(e){return "";}
-  }).join("\n");
-
-  // Additional print-specific overrides
+function buildPrintWindow(chartImages,mapImages){
   const printCSS=`
-    @page{margin:18mm 14mm 18mm 14mm; size:A4}
+    @page{margin:12mm 11mm 14mm 11mm;size:A4 portrait}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
-    body{font-family:"Inter","Segoe UI",system-ui,sans-serif;font-size:12px;color:#1f2540;background:#fff;margin:0;padding:0;line-height:1.4}
-    /* Cover page */
-    .pdf-cover{display:flex;flex-direction:column;justify-content:center;min-height:100vh;padding:60px 48px;background:linear-gradient(135deg,#e9ebff 0%,#dcf7f2 50%,#ffe9e3 100%);page-break-after:always}
-    .pdf-cover-brand{font-size:36px;font-weight:900;letter-spacing:.01em;background:linear-gradient(90deg,#5b5bd6,#0bb8a6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
-    .pdf-cover-sub{font-size:13px;color:#737c9e;letter-spacing:.15em;text-transform:uppercase;font-weight:700;margin-bottom:48px}
-    .pdf-cover-title{font-size:28px;font-weight:800;color:#1f2540;margin-bottom:12px;line-height:1.2}
-    .pdf-cover-meta{font-size:13px;color:#454d6e;margin-bottom:6px}
-    .pdf-cover-sections{margin-top:40px;border-top:2px solid rgba(91,91,214,.2);padding-top:24px}
-    .pdf-cover-sections h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#737c9e;font-weight:800;margin:0 0 12px}
-    .pdf-cover-sections ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-    .pdf-cover-sections li{font-size:12px;color:#454d6e;padding:5px 10px;background:rgba(255,255,255,.6);border-radius:6px;border-left:3px solid #5b5bd6}
-    /* Tab section headers */
-    .pdf-tab-divider{page-break-before:always;padding:36px 0 20px;border-bottom:2.5px solid #5b5bd6;margin-bottom:24px;display:flex;align-items:flex-end;gap:16px}
-    .pdf-tab-divider-num{font-size:48px;font-weight:900;color:#ebebfb;line-height:1;font-variant-numeric:tabular-nums}
-    .pdf-tab-divider-text h2{font-size:22px;font-weight:800;color:#1f2540;margin:0 0 4px;line-height:1.1}
-    .pdf-tab-divider-text p{font-size:11px;color:#737c9e;margin:0}
-    /* Section label */
-    .pdf-sec-label{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:#5b5bd6;display:inline-block;padding:3px 10px;border-radius:5px;margin:18px 0 10px}
-    /* KPI grid */
-    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-    .kpi{background:#fff;border:1px solid #e4e8f4;border-radius:10px;padding:10px 12px;position:relative;overflow:hidden;break-inside:avoid}
-    .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#5b5bd6}
-    .kpi.c1::after{background:#5b5bd6}.kpi.c2::after{background:#0bb8a6}.kpi.c3::after{background:#ff6b5e}.kpi.c4::after{background:#ffb020}.kpi.c5::after{background:#8b5cf6}.kpi.c6::after{background:#3b82f6}.kpi.c7::after{background:#22c55e}.kpi.c8::after{background:#ec4899}
-    .kpi.c1{background:linear-gradient(180deg,#ebebfb,#fff 70%)}.kpi.c2{background:linear-gradient(180deg,#dcf7f2,#fff 70%)}.kpi.c3{background:linear-gradient(180deg,#ffe6e2,#fff 70%)}.kpi.c4{background:linear-gradient(180deg,#fff2d6,#fff 70%)}.kpi.c5{background:linear-gradient(180deg,#efe8fe,#fff 70%)}.kpi.c6{background:linear-gradient(180deg,#e2edfe,#fff 70%)}.kpi.c7{background:linear-gradient(180deg,#dcfae8,#fff 70%)}.kpi.c8{background:linear-gradient(180deg,#fde4f1,#fff 70%)}
-    .kpi .label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#737c9e;font-weight:800}
-    .kpi .val{font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.02em;color:#1f2540}
-    .kpi .sub{font-size:10px;color:#a3abc7;margin-top:2px}
-    /* Cards */
-    .card{background:#fff;border:1px solid #e4e8f4;border-radius:10px;padding:12px 14px;margin-bottom:10px;break-inside:avoid}
-    .card h3{margin:0 0 10px;font-size:11px;font-weight:800;color:#1f2540;display:flex;align-items:center;gap:6px}
-    .card h3 .dot{width:7px;height:7px;border-radius:2px;background:#5b5bd6;flex:none}
-    /* Grid */
-    .grid{display:grid;gap:10px;margin-bottom:10px}
-    .g1{grid-template-columns:1fr}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
-    .spanfull{grid-column:1/-1}
-    /* Chart images */
-    .chart-img{width:100%;height:auto;display:block;border-radius:4px}
-    .chartwrap{min-height:0!important}
-    /* Tables */
-    .scrolly,.scrollx{overflow:visible!important;max-height:none!important;border:none!important;border-radius:0!important}
-    table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px}
-    th,td{padding:5px 7px;text-align:right;border-bottom:1px solid #eef1fa;font-variant-numeric:tabular-nums;white-space:nowrap}
-    th:first-child,td:first-child{text-align:left}
-    th{font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:#737c9e;font-weight:800;background:#f8f9fc;position:static}
-    .num{font-family:ui-monospace,monospace;font-size:10px}
-    tbody tr:nth-child(even){background:#fafbff}
-    /* Badges & pills */
-    .pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:9px;font-weight:700}
-    .pill.r{background:#dcf7f2;color:#0a8a7d}.pill.p{background:#ffe6e2;color:#d8442f}.pill.t{background:#efe8fe;color:#7c43e0}
-    .badge{padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800}
+    html,body{font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:10.5px;color:#1f2540;background:#fff;line-height:1.45;margin:0;padding:0}
+
+    /* ── Cover ── */
+    .pdf-cover{min-height:98vh;padding:52px 46px;background:linear-gradient(140deg,#e8eaff 0%,#d2f4ee 55%,#fde8e2 100%);display:flex;flex-direction:column;justify-content:center;break-after:page;page-break-after:always}
+    .pdf-cover-brand{font-size:36px;font-weight:900;color:#5b5bd6;letter-spacing:-.01em;margin-bottom:5px}
+    .pdf-cover-sub{font-size:10px;color:#737c9e;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:42px}
+    .pdf-cover-title{font-size:24px;font-weight:800;color:#1f2540;margin-bottom:9px;line-height:1.2}
+    .pdf-cover-meta{font-size:11.5px;color:#454d6e;margin-bottom:4px}
+    .pdf-cover-sections{margin-top:34px;border-top:2px solid rgba(91,91,214,.15);padding-top:18px}
+    .pdf-cover-sections h4{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#737c9e;font-weight:800;margin-bottom:9px}
+    .pdf-cover-sections ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0;margin:0}
+    .pdf-cover-sections li{font-size:10.5px;color:#454d6e;padding:4px 8px;background:rgba(255,255,255,.62);border-radius:5px;border-left:3px solid #5b5bd6}
+
+    /* ── Tab divider ── */
+    .pdf-tab-divider{padding:24px 0 14px;border-bottom:2.5px solid #5b5bd6;margin-bottom:18px;display:flex;align-items:flex-end;gap:12px;break-before:page;page-break-before:always}
+    .pdf-tab-divider.first{break-before:avoid!important;page-break-before:avoid!important}
+    .pdf-tab-divider-num{font-size:40px;font-weight:900;color:#ebebfb;line-height:1;min-width:48px}
+    .pdf-tab-divider-text h2{font-size:18px;font-weight:800;color:#1f2540;line-height:1.15;margin-bottom:2px}
+    .pdf-tab-divider-text p{font-size:9.5px;color:#737c9e}
+
+    /* ── Section pill ── */
+    .pdf-sec-label{font-size:8px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#fff;background:#5b5bd6;display:inline-block;padding:2px 8px;border-radius:4px;margin:12px 0 7px}
+
+    /* ── KPI grid ── */
+    .kpis{display:grid;gap:7px;margin-bottom:10px;width:100%}
+    .kpi{border-radius:7px;padding:8px 10px;position:relative;overflow:hidden;break-inside:avoid;border:1px solid #e4e8f4}
+    .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+    .kpi.c1{background:#ebebfb}.kpi.c1::before{background:#5b5bd6}
+    .kpi.c2{background:#dcf7f2}.kpi.c2::before{background:#0bb8a6}
+    .kpi.c3{background:#ffe6e2}.kpi.c3::before{background:#ff6b5e}
+    .kpi.c4{background:#fff2d6}.kpi.c4::before{background:#ffb020}
+    .kpi.c5{background:#efe8fe}.kpi.c5::before{background:#8b5cf6}
+    .kpi.c6{background:#e2edfe}.kpi.c6::before{background:#3b82f6}
+    .kpi.c7{background:#dcfae8}.kpi.c7::before{background:#22c55e}
+    .kpi.c8{background:#fde4f1}.kpi.c8::before{background:#ec4899}
+    .kpi .label{font-size:7.5px;letter-spacing:.05em;text-transform:uppercase;color:#737c9e;font-weight:800;display:block}
+    .kpi .val{font-size:17px;font-weight:800;margin-top:3px;letter-spacing:-.02em;color:#1f2540;line-height:1;display:block}
+    .kpi .sub{font-size:8.5px;color:#a3abc7;margin-top:2px;display:block}
+
+    /* ── Card ── */
+    .card{background:#fff;border:1px solid #e4e8f4;border-radius:7px;padding:9px 11px;margin-bottom:7px;break-inside:avoid;width:100%}
+    .card h3{margin:0 0 7px;font-size:9.5px;font-weight:800;color:#1f2540;display:flex;align-items:center;gap:5px}
+    .card h3 .dot{width:6px;height:6px;border-radius:2px;background:#5b5bd6;flex:none;display:inline-block}
+    .card.tall{break-inside:auto}
+    .card.spanfull{grid-column:1/-1}
+
+    /* ── Grids ── */
+    .grid{display:grid;gap:7px;margin-bottom:8px;width:100%}
+    .g1{grid-template-columns:1fr}
+    .g2{grid-template-columns:1fr 1fr}
+    .g3{grid-template-columns:1fr 1fr 1fr}
+    .g4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+    /* ── Charts (canvas → img) ── */
+    .chartwrap{padding:0!important;min-height:0!important;overflow:visible!important;width:100%}
+    .chartwrap img{width:100%;height:auto;display:block;max-height:200px;object-fit:contain;border-radius:3px}
+    .card.tall .chartwrap img{max-height:260px}
+    .g1 .card.tall .chartwrap img{max-height:220px}
+
+    /* ── Tables ── */
+    .scrolly,.scrollx{overflow:visible!important;max-height:none!important;border:none!important;border-radius:0!important;width:100%!important;display:block}
+    table{width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed;border:1px solid #e4e8f4;border-radius:6px;overflow:hidden}
+    thead tr{background:#f4f6fc}
+    th{font-size:7.5px;letter-spacing:.04em;text-transform:uppercase;color:#737c9e;font-weight:800;padding:5px 6px;text-align:right;border-bottom:1.5px solid #dde2f0;position:static!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th:first-child{text-align:left}
+    td{padding:4px 6px;text-align:right;border-bottom:1px solid #eef1fa;color:#1f2540;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8.5px}
+    td:first-child{text-align:left;font-weight:600;color:#1f2540}
+    tbody tr:nth-child(even) td{background:#f9faff}
+    .num{font-family:ui-monospace,"Courier New",monospace;font-size:8px;font-variant-numeric:tabular-nums}
+
+    /* ── Badges / pills ── */
+    .badge{padding:1px 5px;border-radius:3px;font-size:7.5px;font-weight:800;display:inline-block;line-height:1.4}
     .b-ap{background:#dcfae8;color:#15803d}.b-un{background:#fff2d6;color:#b45309}
-    .delta-up{color:#16a34a;font-weight:800}.delta-dn{color:#ef4444;font-weight:800}
-    .up{color:#16a34a;font-weight:800}.down{color:#ef4444;font-weight:800}
-    /* Podium */
-    .podium{display:flex;gap:8px;flex-wrap:wrap}
-    .pod{flex:1;min-width:100px;border-radius:8px;padding:10px;border:1px solid #e4e8f4;break-inside:avoid}
-    .pod.good{background:#dcfae8}.pod.bad{background:#ffe6e2}
-    .pod .rank{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#737c9e}
-    .pod .nm{font-size:12px;font-weight:800;margin:3px 0;color:#1f2540}
-    .pod .mt{font-size:10px;color:#454d6e}
-    /* Insight cards */
-    .insight-card{background:#fff;border:1px solid #e4e8f4;border-radius:10px;padding:12px 14px;margin-bottom:10px;break-inside:avoid}
-    .insight-card h4{margin:0 0 6px;font-size:12px;font-weight:800;color:#1f2540}
-    .insight-card ul{margin:4px 0 0;padding-left:16px;font-size:11px;line-height:1.6;color:#454d6e}
-    .footnote{font-size:9px;color:#a3abc7;margin-top:6px}
+    .delta-up{color:#16a34a;font-weight:700}.delta-dn{color:#ef4444;font-weight:700}
+    .up{color:#16a34a;font-weight:700}.dn,.down{color:#ef4444;font-weight:700}
+    .pill{display:inline-block;padding:1px 5px;border-radius:999px;font-size:7.5px;font-weight:700}
+    .pill.r{background:#dcf7f2;color:#0a8a7d}.pill.p{background:#ffe6e2;color:#d8442f}.pill.t{background:#efe8fe;color:#7c43e0}
+
+    /* ── Podium ── */
+    .podium{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:7px}
+    .pod{border-radius:6px;padding:8px 10px;border:1px solid #e4e8f4;break-inside:avoid}
+    .pod.good{background:#dcfae8;border-color:#bbf7d0}.pod.bad{background:#ffe6e2;border-color:#fecaca}
+    .pod .rank{font-size:7.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#737c9e;display:block}
+    .pod .nm{font-size:10.5px;font-weight:800;margin:3px 0 2px;color:#1f2540;display:block}
+    .pod .mt{font-size:9px;color:#454d6e;display:block}
+
+    /* ── Maps ── */
+    .mapwrap{border:1px solid #e4e8f4;border-radius:7px;overflow:hidden;background:#fafbff;display:block}
+    .mapwrap img{width:100%;height:auto;display:block;max-height:320px;object-fit:contain}
+    .maplegend{display:flex;align-items:center;gap:7px;font-size:8.5px;color:#737c9e;margin-top:5px}
+    .maplegend .bar{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,#eef1fa,#1CC3E8)}
+
+    /* ── Insight cards ── */
+    .insight-card{background:#fff;border:1px solid #e4e8f4;border-radius:7px;padding:9px 11px;margin-bottom:7px;break-inside:avoid}
+    .insight-card h4{font-size:10.5px;font-weight:800;color:#1f2540;margin-bottom:5px}
+    .insight-card ul{padding-left:13px;margin:3px 0 0;list-style:disc}
+    .insight-card li{font-size:9px;line-height:1.65;color:#454d6e;margin-bottom:1px}
+
+    /* ── Misc ── */
+    .footnote,.fn{font-size:8px;color:#a3abc7;margin-top:4px;line-height:1.5}
     .miss{color:#ef4444}
-    /* footer */
-    .pdf-footer{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:9px;color:#a3abc7;border-top:1px solid #e4e8f4;padding:6px 0;background:#fff}
-    /* hide things not needed */
-    .filterbar,.sectionhead,.msel,button,select,.pdf-top-btn,.msel-panel{display:none!important}
+    .empty{padding:10px;color:#a3abc7;font-size:9px;text-align:center}
+
+    /* ── Footer ── */
+    .pdf-footer{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:8px;color:#b0b8d0;border-top:1px solid #e8ecf4;padding:5px 0 4px;background:#fff;letter-spacing:.04em}
+
+    /* ── Hide interactive elements ── */
+    .filterbar,.sectionhead,.msel,.msel-panel,button,select,
+    .pdf-top-btn,.maptip,.sort-icon,thead .sort,
+    .mapmonth,.msel-actions{display:none!important}
   `;
 
-  // Build HTML body content
+  // ── Build body HTML ──
   let body="";
 
-  // Cover page
+  // Cover
   const selectedLabels=[];
   Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
     const sel=secs.filter(s=>pdfChecked.has(s.id));
@@ -848,80 +951,108 @@ function buildPrintWindow(chartImages){
     <div class="pdf-cover-title">Claims Operations Report</div>
     <div class="pdf-cover-meta">Period: <strong>${state?mLabel(state.asOf):""}</strong></div>
     <div class="pdf-cover-meta">Generated: <strong>${new Date().toLocaleString("en-IN",{dateStyle:"long",timeStyle:"short"})}</strong></div>
-    <div class="pdf-cover-sections">
-      <h4>Sections included</h4>
-      <ul>${allSecsList}</ul>
-    </div>
+    <div class="pdf-cover-sections"><h4>Sections included</h4><ul>${allSecsList}</ul></div>
   </div>`;
 
-  // Tab sections
   const tabNums={intimation:"01",submission:"02",outstanding:"03",assessor:"04",cce:"05",upload:"06",hub:"07",ro:"08",perf:"09",density:"10",insights:"11"};
   let firstTab=true;
+
   Object.entries(PDF_SECTIONS).forEach(([tab,secs])=>{
     const selected=secs.filter(s=>pdfChecked.has(s.id));
     if(!selected.length)return;
 
-    body+=`<div class="pdf-tab-divider${firstTab?" style='page-break-before:avoid'":''}">
+    const divClass="pdf-tab-divider"+(firstTab?" first":"");
+    body+=`<div class="${divClass}">
       <div class="pdf-tab-divider-num">${tabNums[tab]||""}</div>
       <div class="pdf-tab-divider-text">
         <h2>${(TAB_LABELS[tab]||tab).replace(/^\d+\s*·\s*/,"")}</h2>
-        <p>${state?mLabel(state.asOf):""} · Generated ${new Date().toLocaleDateString("en-IN")}</p>
+        <p>${state?mLabel(state.asOf):""} &nbsp;·&nbsp; ${new Date().toLocaleDateString("en-IN")}</p>
       </div>
     </div>`;
     firstTab=false;
 
     selected.forEach(s=>{
       const el=document.getElementById(s.id);
-      if(!el)return;
+      if(!el){body+=`<div class="pdf-sec-label">${s.label}</div><div class="empty">Section not rendered</div>`;return;}
 
       body+=`<div class="pdf-sec-label">${s.label}</div>`;
-
-      // Clone the element and replace canvases with images
       const clone=el.cloneNode(true);
+
+      // ── Replace canvas charts with PNG images ──
       clone.querySelectorAll("canvas[id]").forEach(canvas=>{
-        const img=document.createElement("img");
-        img.className="chart-img";
-        img.src=chartImages[canvas.id]||"";
-        img.style.cssText="width:100%;height:auto;display:block;max-height:260px;object-fit:contain";
-        // replace the chartwrap contents
-        const wrap=canvas.parentElement;
-        if(wrap&&wrap.classList.contains("chartwrap")){
-          wrap.innerHTML="";
-          wrap.style.cssText="min-height:0;padding:0";
-          wrap.appendChild(img);
-        }else{
-          canvas.replaceWith(img);
-        }
+        const src=chartImages[canvas.id];
+        const wrap=canvas.closest(".chartwrap");
+        const replacement=src
+          ?`<img src="${src}" style="width:100%;height:auto;display:block;max-height:240px;object-fit:contain;border-radius:3px">`
+          :`<div style="height:90px;display:flex;align-items:center;justify-content:center;color:#a3abc7;font-size:9px;background:#f8f9fc;border-radius:5px;border:1px dashed #dde2f0">Chart image unavailable</div>`;
+        if(wrap){wrap.innerHTML=replacement;wrap.style.cssText="min-height:0;padding:0;overflow:visible";}
+        else{const img=document.createElement("div");img.innerHTML=replacement;canvas.replaceWith(img.firstChild||img);}
       });
-      // remove interactive elements
-      clone.querySelectorAll("select,button,.msel,.msel-panel,.filterbar,.pdf-top-btn,.sectionhead").forEach(n=>n.remove());
-      // fix scrollable tables — remove overflow containers
-      clone.querySelectorAll(".scrolly,.scrollx").forEach(wrap=>{
-        wrap.style.cssText="overflow:visible;max-height:none;border:none;border-radius:0";
+
+      // ── Replace SVG maps with captured data-URI images ──
+      clone.querySelectorAll(".mapwrap").forEach((wrap,wi)=>{
+        const wrapId=wrap.id||(s.id+"_map_"+wi);
+        const src=mapImages&&mapImages[wrapId];
+        // Also clean up any leftover SVG / loading text
+        wrap.innerHTML=src
+          ?`<img src="${src}" style="width:100%;height:auto;display:block;max-height:320px;object-fit:contain">`
+          :`<div style="height:160px;display:flex;align-items:center;justify-content:center;color:#a3abc7;font-size:9px;background:#f8f9fc;border-radius:5px;border:1px dashed #dde2f0">Map image unavailable</div>`;
       });
-      body+=clone.outerHTML;
+
+      // ── Strip interactive / layout-only elements ──
+      clone.querySelectorAll(
+        "select,button,.msel,.msel-panel,.filterbar,.pdf-top-btn,.sectionhead,.maptip,.mapmonth,.msel-actions"
+      ).forEach(n=>n.remove());
+
+      // ── Unwrap scroll containers ──
+      clone.querySelectorAll(".scrolly,.scrollx").forEach(w=>{
+        w.style.cssText="overflow:visible;max-height:none;border:none;border-radius:0;width:100%;display:block";
+      });
+
+      // ── KPI grid: auto-fit columns based on count ──
+      clone.querySelectorAll(".kpis").forEach(kpisEl=>{
+        const n=kpisEl.querySelectorAll(".kpi").length;
+        const cols=n<=4?n:n<=6?3:n<=8?4:5;
+        kpisEl.style.cssText=`display:grid;grid-template-columns:repeat(${cols},1fr);gap:7px;margin-bottom:10px;width:100%`;
+      });
+
+      // ── Fix any inline styles that reference CSS variables ──
+      clone.querySelectorAll("[style]").forEach(el=>{
+        const s=el.getAttribute("style")||"";
+        if(s.includes("var(--"))el.setAttribute("style",s.replace(/var\(--[^)]+\)/g,""));
+      });
+
+      body+=`<div style="width:100%;margin-bottom:14px">${clone.outerHTML}</div>`;
     });
   });
 
-  // Open print window
-  const win=window.open("","_blank","width=900,height=700");
-  if(!win){toast("Pop-up blocked — please allow pop-ups and try again.");return;}
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>XCLAIM — Claims Report</title>
-    <style>${styleSheets}</style>
+  // ── Open popup and write ──
+  const win=window.open("","_blank","width=900,height=760,scrollbars=yes");
+  if(!win){toast("Pop-up blocked — allow pop-ups and try again.");return;}
+  win.document.write(`<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <title>XCLAIM — Claims Report · ${state?mLabel(state.asOf):""}</title>
     <style>${printCSS}</style>
-  </head><body>${body}
-  <div class="pdf-footer">XCLAIM Claims Intelligence · Confidential · ${new Date().toLocaleDateString("en-IN")}</div>
-  <script>window.onload=function(){setTimeout(()=>{window.print();},600);}<\/script>
+  </head><body>
+    ${body}
+    <div class="pdf-footer">XCLAIM Claims Intelligence &nbsp;·&nbsp; Confidential &nbsp;·&nbsp; ${new Date().toLocaleDateString("en-IN")}</div>
+    <script>
+      window.addEventListener("load",function(){
+        // Verify images loaded before printing
+        var imgs=document.querySelectorAll("img");
+        var pending=imgs.length;
+        if(!pending){setTimeout(window.print,500);return;}
+        function check(){if(--pending<=0)setTimeout(window.print,400);}
+        imgs.forEach(function(img){
+          if(img.complete)check();
+          else{img.onload=check;img.onerror=check;}
+        });
+      });
+    <\/script>
   </body></html>`);
   win.document.close();
 }
 
-/* tag section containers in each tab render — called by wirePdfBtns after render */
-function wirePdfBtns(){
-  // no-op: section tagging is done inside each render via data-pdf-id attributes added below
-}
-/* helper called from render functions to wrap content with section id */
-function pdfWrap(id,html){return `<div id="${id}">${html}</div>`;}
 </script>
 
 <script>
@@ -1086,9 +1217,9 @@ function renderSubmission(){
   mkChart("s_vtype",doughnutCfg([...byVtype.keys()],[...byVtype.values()],PAL));
   mkChart("s_trend",lineCfg(trL,[{label:"Submissions",data:trD,color:PAL[1]}],true));
   $("#sa_tl_holder").innerHTML=mselHTML("sa_tl","TL",tlOpts,af.tl);
-  wireMsel("sa_tl",vals=>{state.subAFilter.tl=vals;renderSubmission();});
+  wireMsel("sa_tl",vals=>{state.subAFilter.tl=vals;_saveOpenPanel();clearTimeout(window._tSub);window._tSub=setTimeout(()=>{renderSubmission();_restoreOpenPanel();},400);});
   $("#sa_zone_holder").innerHTML=mselHTML("sa_zone","Zone",zOpts,af.zone);
-  wireMsel("sa_zone",vals=>{state.subAFilter.zone=vals;renderSubmission();});
+  wireMsel("sa_zone",vals=>{state.subAFilter.zone=vals;_saveOpenPanel();clearTimeout(window._tSub);window._tSub=setTimeout(()=>{renderSubmission();_restoreOpenPanel();},400);});
   wireTopN(renderSubmission);
 }
 
@@ -1232,11 +1363,11 @@ function renderAssessor(){
   mkChart("a_com",barCfg(topB.map(x=>x.a),topB.map(x=>x.sub),true,PAL,true));
   mkChart("a_os",{type:"bar",data:{labels:topB.map(x=>x.a),datasets:[{label:"0-5",data:topB.map(x=>x.s05),backgroundColor:PAL[6]},{label:"6-15",data:topB.map(x=>x.s615),backgroundColor:PAL[3]},{label:">15",data:topB.map(x=>x.sA15),backgroundColor:PAL[2]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
   $("#a_seg_holder").innerHTML=mselHTML("a_seg","Segment",segOpts,f.segment);
-  wireMsel("a_seg",vals=>{state.assFilter.segment=vals;renderAssessor();});
+  wireMsel("a_seg",vals=>{state.assFilter.segment=vals;_saveOpenPanel();clearTimeout(window._tAss);window._tAss=setTimeout(()=>{renderAssessor();_restoreOpenPanel();},400);});
   $("#a_tl_holder").innerHTML=mselHTML("a_tl","TL",tlOpts,f.tl);
-  wireMsel("a_tl",vals=>{state.assFilter.tl=vals;renderAssessor();});
+  wireMsel("a_tl",vals=>{state.assFilter.tl=vals;_saveOpenPanel();clearTimeout(window._tAss);window._tAss=setTimeout(()=>{renderAssessor();_restoreOpenPanel();},400);});
   $("#a_zone_holder").innerHTML=mselHTML("a_zone","Zone",zOpts,f.zone);
-  wireMsel("a_zone",vals=>{state.assFilter.zone=vals;renderAssessor();});
+  wireMsel("a_zone",vals=>{state.assFilter.zone=vals;_saveOpenPanel();clearTimeout(window._tAss);window._tAss=setTimeout(()=>{renderAssessor();_restoreOpenPanel();},400);});
 }
 
 /* ===== TAB 5 — CCE (replicates CCE sheet) ===== */
@@ -1300,9 +1431,9 @@ function renderCCE(){
   mkChart("c_com",barCfg(topB.map(x=>x.c),topB.map(x=>x.mtd),true,PAL,true));
   mkChart("c_pipe",{type:"bar",data:{labels:topB.map(x=>x.c),datasets:[{label:"Survey Pend",data:topB.map(x=>x.surveyPending),backgroundColor:PAL[3]},{label:"Assign Pend",data:topB.map(x=>x.assignPending),backgroundColor:PAL[5]},{label:"Other",data:topB.map(x=>x.otherPending),backgroundColor:PAL[1]}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:11,usePointStyle:true,pointStyle:"rectRounded"}},dl:{on:false}},scales:{x:{stacked:true,grid:{color:"#eef1fa"}},y:{stacked:true,grid:{display:false}}}}});
   $("#c_tl_holder").innerHTML=mselHTML("c_tl","TL",tlOpts,f.tl);
-  wireMsel("c_tl",vals=>{state.cceFilter.tl=vals;renderCCE();});
+  wireMsel("c_tl",vals=>{state.cceFilter.tl=vals;_saveOpenPanel();clearTimeout(window._tCce);window._tCce=setTimeout(()=>{renderCCE();_restoreOpenPanel();},400);});
   $("#c_zone_holder").innerHTML=mselHTML("c_zone","Zone",zOpts,f.zone);
-  wireMsel("c_zone",vals=>{state.cceFilter.zone=vals;renderCCE();});
+  wireMsel("c_zone",vals=>{state.cceFilter.zone=vals;_saveOpenPanel();clearTimeout(window._tCce);window._tCce=setTimeout(()=>{renderCCE();_restoreOpenPanel();},400);});
 }
 
 /* ===== TAB 6 — UPLOADING ===== */
@@ -1551,13 +1682,16 @@ function renderPerf(){
     <button class="reset" id="pf_reset">Reset</button>
   </div>
 
+  <div id="s_perf_intim">
   <div class="sectionhead"><span class="eyebrow">Intimation</span><h2>Intimation — FTD / ${P.curLabel} / ${P.prevLabel}</h2><div class="rule"></div></div>
   <div class="kpis">
     ${kpi("Intimation FTD",fmt(intimFTD),`as of ${dayKey(state.asOf)}`,"c1")}
     ${kpi("Intimation "+P.curLabel,fmt(intimMTD),"this scope","c1")}
     ${kpi("Intimation "+P.prevLabel,fmt(intimLMTD),"this scope","c1")}
   </div>
+  </div>
 
+  <div id="s_perf_sub">
   <div class="sectionhead"><span class="eyebrow">Submission</span><h2>Submission — FTD / ${P.curLabel} / ${P.prevLabel}, TAT &amp; settlement</h2><div class="rule"></div></div>
   <div class="kpis">
     ${kpi("Submission FTD",fmt(subFTD),`as of ${dayKey(state.asOf)}`,"c2")}
@@ -1566,14 +1700,18 @@ function renderPerf(){
     ${kpi("TAT for Submission",fmt1(avgSubTAT)+" d","created → final report","c4")}
     ${kpi("Avg Settlement",money(avgSettle),P.curLabel+" submissions","c4")}
   </div>
+  </div>
 
+  <div id="s_perf_os">
   <div class="sectionhead"><span class="eyebrow">Outstanding</span><h2>Outstanding &amp; aging</h2><div class="rule"></div></div>
   <div class="kpis">
     ${kpi("Outstanding",fmt(osRows.length),"open cases","c3")}
     ${kpi("Avg Aging TAT",fmt1(avgAging)+" d","outstanding cases","c5")}
     ${kpi("Above 15 Days",fmt(osByBucket[2]),pct(osRows.length?osByBucket[2]/osRows.length:null),"c3")}
   </div>
+  </div>
 
+  <div id="s_perf_mix">
   <div class="sectionhead t2"><span class="eyebrow">MTD Mix</span><h2>${P.curLabel} Intimation &amp; Submission — vehicle-type &amp; segment wise</h2><div class="rule"></div></div>
   <div class="grid g4">
     ${card("Intimation by vehicle type",cv("pf_intimvtype"))}
@@ -1581,7 +1719,9 @@ function renderPerf(){
     ${card("Submission by vehicle type",cv("pf_subvtype"))}
     ${card("Submission by segment",cv("pf_subseg"))}
   </div>
+  </div>
 
+  <div id="s_perf_osbucket">
   <div class="sectionhead t4"><span class="eyebrow">Outstanding</span><h2>Aging bucket &amp; snapshot — product &amp; segment wise</h2><div class="rule"></div></div>
   <div class="grid g2">
     ${card("Outstanding by aging bucket",cv("pf_osbucket"))}
@@ -1596,7 +1736,9 @@ function renderPerf(){
       ${kpi("Above 15 Days",fmt(osByBucket[2]),pct(osRows.length?osByBucket[2]/osRows.length:null),"c3")}
     </div>`)}
   </div>
+  </div>
 
+  <div id="s_perf_summary">
   <div class="sectionhead t5"><span class="eyebrow">New Summary</span><h2>Month-wise intimation &amp; submission, product mix, claim size &amp; savings</h2><div class="rule"></div></div>
   <div class="filterbar" style="position:static;margin:0 0 12px;top:auto">
     <div class="f"><label>Range</label><select id="ns_range">
@@ -1608,7 +1750,7 @@ function renderPerf(){
 
   <div class="card tall">${table(["Month","Cases Reported","Submitted","Case Cancelled","Report Submitted","Outstanding","Submission %"],
     nsByMonth.map(m=>`<tr><td>${m.label}</td><td class="num">${fmt(m.reported)}</td><td class="num">${fmt(m.submitted)}</td><td class="num">${fmt(m.cancelled)}</td><td class="num">${fmt(m.reportSubmitted)}</td><td class="num">${fmt(m.outstanding)}</td><td class="num">${pct(m.subRatio)}</td></tr>`).join("")
-    +`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td><td class="num">${fmt(nsTotR)}</td><td class="num">${fmt(nsTotS)}</td><td class="num">${fmt(nsTotC)}</td><td class="num">${fmt(nsTotRS)}</td><td class="num">${fmt(nsTotOS)}</td><td class="num">${pct(nsSubPct)}</td></tr>`)}
+    +`<tr style="font-weight:700;background:#f4f6fc"><td>Total</td><td class="num">${fmt(nsTotR)}</td><td class="num">${fmt(nsTotS)}</td><td class="num">${fmt(nsTotC)}</td><td class="num">${fmt(nsTotRS)}</td><td class="num">${fmt(nsTotOS)}</td><td class="num">${pct(nsSubPct)}</td></tr>`)}
     ${cv("ns_trend")}</div>
 
   <div class="grid g2" style="margin-top:14px">
@@ -1616,7 +1758,7 @@ function renderPerf(){
       <h3><span class="dot"></span>Product wise summary</h3>
       ${table(["Vehicle Type","Cases Reported","Submitted","Case Cancelled","Outstanding","Submission %","TAT","Ticket Size"],
         nsProdWise.map(x=>`<tr><td>${x.v}</td><td class="num">${fmt(x.reported)}</td><td class="num">${fmt(x.submitted)}</td><td class="num">${fmt(x.cancelled)}</td><td class="num">${fmt(x.outstanding)}</td><td class="num">${pct(x.subPct)}</td><td class="num">${fmt1(x.tat)}</td><td class="num">${money(x.ticket)}</td></tr>`).join("")
-        +`<tr style="font-weight:700;background:var(--bg2)"><td>Overall</td><td class="num">${fmt(nsOverall.reported)}</td><td class="num">${fmt(nsOverall.submitted)}</td><td class="num">${fmt(nsOverall.cancelled)}</td><td class="num">${fmt(nsOverall.outstanding)}</td><td class="num">${pct(nsOverall.subPct)}</td><td class="num">${fmt1(nsOverall.tat)}</td><td class="num">${money(nsOverall.ticket)}</td></tr>`)}
+        +`<tr style="font-weight:700;background:#f4f6fc"><td>Overall</td><td class="num">${fmt(nsOverall.reported)}</td><td class="num">${fmt(nsOverall.submitted)}</td><td class="num">${fmt(nsOverall.cancelled)}</td><td class="num">${fmt(nsOverall.outstanding)}</td><td class="num">${pct(nsOverall.subPct)}</td><td class="num">${fmt1(nsOverall.tat)}</td><td class="num">${money(nsOverall.ticket)}</td></tr>`)}
     </div>
     <div class="card">
       <h3><span class="dot"></span>RO wise overall (this scope)</h3>
@@ -1626,14 +1768,16 @@ function renderPerf(){
       ].map(([k,v])=>`<tr><td>${k}</td><td class="num">${v}</td></tr>`).join(""))}
     </div>
   </div>
+  </div>
 
+  <div id="s_perf_claims">
   <div class="sectionhead t6"><span class="eyebrow">Claim size &amp; savings</span><h2>Average claim size &amp; TAT, estimation vs settlement</h2><div class="rule"></div></div>
   <div class="grid g2">
     <div class="card">
       <h3><span class="dot"></span>Estimation vs settlement — month wise</h3>
       ${table(["Month","Estimation Amount","Settlement Amount","Claim Savings","% of Savings"],
         nsEstByMonth.map(m=>`<tr><td>${m.label}</td><td class="num">${money(m.est)}</td><td class="num">${money(m.setl)}</td><td class="num">${money(m.savings)}</td><td class="num">${pct(m.pct)}</td></tr>`).join("")
-        +`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td><td class="num">${money(nsEstTot.est)}</td><td class="num">${money(nsEstTot.setl)}</td><td class="num">${money(nsEstTot.savings)}</td><td class="num">${pct(nsEstTot.pct)}</td></tr>`)}
+        +`<tr style="font-weight:700;background:#f4f6fc"><td>Total</td><td class="num">${money(nsEstTot.est)}</td><td class="num">${money(nsEstTot.setl)}</td><td class="num">${money(nsEstTot.savings)}</td><td class="num">${pct(nsEstTot.pct)}</td></tr>`)}
       ${cv("ns_esttrend")}
     </div>
     <div class="card">
@@ -1642,6 +1786,7 @@ function renderPerf(){
         nsEstByVtype.map(x=>`<tr><td>${x.v}</td><td class="num">${money(x.est)}</td><td class="num">${money(x.setl)}</td><td class="num">${money(x.savings)}</td><td class="num">${pct(x.pct)}</td></tr>`).join("")||emptyRow(5))}
       ${cv("ns_estvtype")}
     </div>
+  </div>
   </div>
   `;
 
@@ -1671,11 +1816,11 @@ function renderPerf(){
   $("#ns_range").onchange=e=>{state.perfRange=+e.target.value;renderPerf();};
 
   $("#pf_insurer_holder").innerHTML=mselHTML("pf_insurer","Insurer",insurerNames,f.insurer);
-  wireMsel("pf_insurer",vals=>{state.perfFilter.insurer=vals;state.perfFilter.ro=[];state.perfFilter.hub=[];renderPerf();});
+  wireMsel("pf_insurer",vals=>{state.perfFilter.insurer=vals;state.perfFilter.ro=[];state.perfFilter.hub=[];_saveOpenPanel();clearTimeout(window._tPerf);window._tPerf=setTimeout(()=>{renderPerf();_restoreOpenPanel();},400);});
   $("#pf_ro_holder").innerHTML=mselHTML("pf_ro","RO Name",roNames,f.ro);
-  wireMsel("pf_ro",vals=>{state.perfFilter.ro=vals;state.perfFilter.hub=[];renderPerf();});
+  wireMsel("pf_ro",vals=>{state.perfFilter.ro=vals;state.perfFilter.hub=[];_saveOpenPanel();clearTimeout(window._tPerf);window._tPerf=setTimeout(()=>{renderPerf();_restoreOpenPanel();},400);});
   $("#pf_hub_holder").innerHTML=mselHTML("pf_hub","Hub",hubNames,f.hub);
-  wireMsel("pf_hub",vals=>{state.perfFilter.hub=vals;renderPerf();});
+  wireMsel("pf_hub",vals=>{state.perfFilter.hub=vals;_saveOpenPanel();clearTimeout(window._tPerf);window._tPerf=setTimeout(()=>{renderPerf();_restoreOpenPanel();},400);});
   $("#pf_reset").onclick=()=>{state.perfFilter={insurer:[],ro:[],hub:[]};renderPerf();};
 }
 
@@ -1874,6 +2019,7 @@ async function renderDensity(){
   </div>
 
   <div class="sectionhead"><span class="eyebrow">Density</span><h2>Intimation Penetration — compare two months</h2><div class="rule"></div></div>
+  <div id="s_den_map">
   <div class="grid g2">
     <div class="card">
       <div class="mapmonth"><select id="dm_month1">${months.map(m=>`<option value="${m.mk}" ${m.mk===state.densityM1?"selected":""}>${m.label}</option>`).join("")}</select><div id="dm_day1_holder"></div></div>
@@ -1887,24 +2033,25 @@ async function renderDensity(){
     </div>
   </div>
   <div class="footnote" style="margin:10px 22px 0">Color intensity = intimation count for that state in the selected month (and days, if chosen). Hover a state for the exact count, click a state to drill into district-wise density. Map loads via CDN — requires an internet connection.</div>
+  </div>
 
   <div class="sectionhead" style="margin-top:18px"><span class="eyebrow">Matrix</span><h2>State &times; Vehicle Type — intimation count</h2><div class="rule"></div></div>
-  <div id="dm_matrix"></div>
+  <div id="s_den_matrix"><div id="dm_matrix"></div></div>
   `;
 
   $("#dm_insurer_holder").innerHTML=mselHTML("dm_insurer","Insurer",insurerNames,f.insurer);
-  wireMsel("dm_insurer",vals=>{state.densityFilter.insurer=vals;renderDensity();});
+  wireMsel("dm_insurer",vals=>{state.densityFilter.insurer=vals;_saveOpenPanel();clearTimeout(window._tDen);window._tDen=setTimeout(()=>{renderDensity();_restoreOpenPanel&&setTimeout(_restoreOpenPanel,200);},400);});
   $("#dm_vtype_holder").innerHTML=mselHTML("dm_vtype","Vehicle Type",vtypes,f.vtype);
-  wireMsel("dm_vtype",vals=>{state.densityFilter.vtype=vals;renderDensity();});
+  wireMsel("dm_vtype",vals=>{state.densityFilter.vtype=vals;_saveOpenPanel();clearTimeout(window._tDen);window._tDen=setTimeout(()=>{renderDensity();_restoreOpenPanel&&setTimeout(_restoreOpenPanel,200);},400);});
   $("#dm_segment_holder").innerHTML=mselHTML("dm_segment","Segment",segments,f.segment);
-  wireMsel("dm_segment",vals=>{state.densityFilter.segment=vals;renderDensity();});
+  wireMsel("dm_segment",vals=>{state.densityFilter.segment=vals;_saveOpenPanel();clearTimeout(window._tDen);window._tDen=setTimeout(()=>{renderDensity();_restoreOpenPanel&&setTimeout(_restoreOpenPanel,200);},400);});
   $("#dm_reset").onclick=()=>{state.densityFilter={insurer:[],vtype:[],segment:[]};state.densityD1=[];state.densityD2=[];renderDensity();};
   $("#dm_month1").onchange=e=>{state.densityM1=+e.target.value;state.densityD1=[];renderDensity();};
   $("#dm_month2").onchange=e=>{state.densityM2=+e.target.value;state.densityD2=[];renderDensity();};
   $("#dm_day1_holder").innerHTML=mselHTML("dm_day1","Day",days1Opts,state.densityD1);
-  wireMsel("dm_day1",vals=>{state.densityD1=vals;renderDensity();});
+  wireMsel("dm_day1",vals=>{state.densityD1=vals;_saveOpenPanel();clearTimeout(window._tDen);window._tDen=setTimeout(()=>{renderDensity();_restoreOpenPanel&&setTimeout(_restoreOpenPanel,200);},400);});
   $("#dm_day2_holder").innerHTML=mselHTML("dm_day2","Day",days2Opts,state.densityD2);
-  wireMsel("dm_day2",vals=>{state.densityD2=vals;renderDensity();});
+  wireMsel("dm_day2",vals=>{state.densityD2=vals;_saveOpenPanel();clearTimeout(window._tDen);window._tDen=setTimeout(()=>{renderDensity();_restoreOpenPanel&&setTimeout(_restoreOpenPanel,200);},400);});
 
   try{
     const geo=await loadIndiaGeo();
@@ -1950,7 +2097,7 @@ async function renderDensity(){
       const sortedStates=[...mat.entries()].sort((a,b)=>b[1]._total-a[1]._total);
       const thead=`<tr><th>State</th>${activeVtypes.map(v=>`<th>${v}</th>`).join("")}<th>Total</th></tr>`;
       const tbody=sortedStates.map(([st,row])=>`<tr><td>${st}</td>${activeVtypes.map(v=>`<td class="num">${row[v]||"–"}</td>`).join("")}<td class="num" style="font-weight:700">${fmt(row._total)}</td></tr>`).join("");
-      const tfoot=`<tr style="font-weight:700;background:var(--bg2)"><td>Total</td>${activeVtypes.map(v=>`<td class="num">${fmt(colTotals[v])}</td>`).join("")}<td class="num">${fmt(grandTotal)}</td></tr>`;
+      const tfoot=`<tr style="font-weight:700;background:#f4f6fc"><td>Total</td>${activeVtypes.map(v=>`<td class="num">${fmt(colTotals[v])}</td>`).join("")}<td class="num">${fmt(grandTotal)}</td></tr>`;
       return `<div class="scrollx"><table class="sortable"><thead>${thead}</thead><tbody>${tbody}${tfoot}</tbody></table></div>`;
     }
 
@@ -2101,6 +2248,7 @@ function renderInsights(){
   <div class="footnote" style="margin:-4px 22px 14px">Performance flags compare each person/team against their own peer group quartiles — not a fixed external target. Filters above narrow all 9 sections simultaneously.</div>
 
   <div class="sectionhead"><span class="eyebrow">1 · Intimation</span><h2>Volume, mix &amp; distribution</h2><div class="rule"></div></div>
+  <div id="s_ins_intim">
   ${insightBlock("Intimation overview","",
     [`${fmt(curRows.length)} cases in ${P.scope}, led by <b>${topInsurer?topInsurer[0]:"—"}</b> (${topInsurer?fmt(topInsurer[1].length):0} cases).${intimGrowth!=null?` Volume <b>${intimGrowth>=0?"up":"down"} ${pct(Math.abs(intimGrowth))}</b> vs last period.`:""}`,
      `Cancellation rate: <b>${pct(cancelRate)}</b>.${cancelRate!=null&&cancelRate>0.05?" ⚠ Above 5% — review cancellation reasons.":""}`,
@@ -2108,16 +2256,20 @@ function renderInsights(){
      `Vehicle split: ${vtypeCounts.slice(0,3).map(([v,arr])=>`<b>${v}</b> ${fmt(arr.length)}`).join(", ")}.`],
     zRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt(z.n)} cases, bottom quartile by volume.`),
     zRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt(z.n)} cases, top quartile by volume.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">2 · Submission</span><h2>Conversion, TAT &amp; settlement</h2><div class="rule"></div></div>
+  <div id="s_ins_sub">
   ${insightBlock("Submission overview","",
     [`${pct(subRate)} conversion; avg TAT <b>${fmt1(overallSubTAT)}d</b>. Avg settlement: <b>${money(avgSettle)}</b>.`,
      `Segment TAT: ${subBySeg.slice(0,3).map(x=>`<b>${x.seg}</b> ${fmt1(x.tat)}d`).join(", ")}.`,
      `Vehicle TAT: ${subByVt.slice(0,3).map(x=>`<b>${x.vtype}</b> ${fmt1(x.tat)}d, avg settle ${money(x.settle)}`).join(", ")}.`],
     subRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt1(z.tat)}d avg TAT, slowest quartile.`),
     subRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt1(z.tat)}d avg TAT, fastest quartile.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">3 · Outstanding</span><h2>Aging, SLA &amp; segment analysis</h2><div class="rule"></div></div>
+  <div id="s_ins_os">
   ${insightBlock("Outstanding overview","",
     [`${fmt(osRows.length)} open cases, avg age <b>${fmt1(osAvgAge)}d</b>. ${pct(osAbove15Pct)} above 15d SLA.`,
      `Segment aging: ${osBySeg.map(x=>`<b>${x.seg}</b> ${fmt1(x.age)}d (${fmt(x.n)} cases)`).join(", ")}.`,
@@ -2125,8 +2277,10 @@ function renderInsights(){
      districtOS.length?`Top OS districts: ${districtOS.slice(0,5).map(x=>`<b>${x.name}</b> ${fmt(x.n)} OS (${fmt1(x.age)}d avg)`).join(", ")}.`:""],
     osRanked.filter(z=>z._flag==="risk").map(z=>`${z.name} — ${fmt(z.n)} OS, ${fmt1(z.age)}d avg — oldest-aging quartile.`),
     osRanked.filter(z=>z._flag==="good").map(z=>`${z.name} — ${fmt(z.n)} OS, ${fmt1(z.age)}d avg — freshest quartile.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">4 · Assessor</span><h2>Turnaround &amp; workload</h2><div class="rule"></div></div>
+  <div id="s_ins_ass">
   ${insightBlock(`Assessor performance — ${fmt(assEligible.length)} with 5+ submissions`,"",
     [`Median TAT: <b>${fmt1(median(assEligible.map(x=>x.overallTAT)))}d</b>. Below 5-submission bar: <b>${fmt(assAll.length-assEligible.length)}</b>.`],
     assRiskTAT.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${fmt1(x._v)}d TAT, ${fmt(x.sub)} subs, OS ${fmt(x.os)} — slowest quartile.`),
@@ -2134,55 +2288,66 @@ function renderInsights(){
   ${assLowVol.length?insightBlock("Underutilization — low submission volume","",
     [`${fmt(assLowVol.length)} assessor(s) in bottom quartile by volume despite 5+ threshold.`],
     assLowVol.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — only ${fmt(x._v)} submissions.`)):""}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">5 · CCE</span><h2>Survey link turnaround</h2><div class="rule"></div></div>
+  <div id="s_ins_cce">
   ${insightBlock(`CCE performance — ${fmt(cceEligible.length)} CCEs with 5+ links shared`,"",
     [`Median link-share TAT: <b>${minsToHrs(median(cceEligible.map(x=>x.linkTAT)))}</b>.`],
     cceRisk.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${minsToHrs(x._v)} link TAT — slowest quartile.`),
     cceGood.slice(0,8).map(x=>`${x.name} (${x.zone}/${x.tl}) — ${minsToHrs(x._v)} link TAT — fastest quartile.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">6 · Uploading Team</span><h2>FSR→Email→Upload TAT</h2><div class="rule"></div></div>
+  <div id="s_ins_upl">
   ${insightBlock(`Uploading team — ${fmt(uplRows.length)} uploaders with 3+ uploads`,"",
     [`Median total TAT: <b>${fmt1(median(uplRows.map(x=>x.tat)))}d</b>. FSR→Email avg: <b>${fmt1(avg(uplRows.map(x=>x.fsrEmail)))}d</b>. Email→Upload avg: <b>${fmt1(avg(uplRows.map(x=>x.emailUpl)))}d</b>. Unmatched: <b>${pct(uplUnmatchedPct)}</b>.`],
     uplRisk.slice(0,8).map(x=>`${x.name} — ${fmt1(x._v)}d TAT on ${fmt(x.n)} uploads — slowest quartile.`),
     uplGood.slice(0,8).map(x=>`${x.name} — ${fmt1(x._v)}d TAT on ${fmt(x.n)} uploads — fastest quartile.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">7 · RO Performance</span><h2>Volume, growth &amp; settlement</h2><div class="rule"></div></div>
+  <div id="s_ins_ro">
   ${insightBlock("RO performance","",
     [`${fmt(roRows.length)} active ROs. ${roDeclining.length?fmt(roDeclining.length)+" RO(s) show 30%+ volume drop.":"No RO shows a sharp volume drop."}`,
      topSetRO.length&&topSetRO[0].settle?`Top-settling RO: <b>${topSetRO[0].name}</b> avg ${money(topSetRO[0].settle)} per case.`:""],
     [...roAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt1(x.age)}d avg OS age, ${fmt(x.os)} open — oldest-aging quartile.`),
      ...roDeclining.slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
     roVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} intimations, top quartile${x.tgt?`, ${pct(x.com)} of target`:""}.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">8 · Hub Performance</span><h2>Volume, growth &amp; aging</h2><div class="rule"></div></div>
+  <div id="s_ins_hub">
   ${insightBlock("Hub performance","",
     [`${fmt(hubRowsArr.length)} active hubs. ${hubDeclining.length?fmt(hubDeclining.length)+" hub(s) show 30%+ volume drop.":"No hub shows a sharp volume drop."}`,
      hubRowsArr.some(x=>x.city)?`Hubs across <b>${new Set(hubRowsArr.map(x=>x.city).filter(Boolean)).size}</b> distinct districts/cities.`:""],
     [...hubAgeRanked.filter(x=>x._flag==="risk").sort((a,b)=>b._v-a._v).slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt1(x.age)}d avg OS age, ${fmt(x.os)} open — oldest-aging quartile.`),
      ...hubDeclining.slice(0,6).map(x=>`${x.name} — ${fmt(x.mtd)} this period vs ${fmt(x.prev)} last (${pct(x.prev?x.mtd/x.prev-1:null)} change).`)],
     hubVolRanked.filter(x=>x._flag==="good").slice(0,6).map(x=>`${x.name} (${x.insurer}) — ${fmt(x.mtd)} intimations, top quartile.`))}
+  </div>
 
   <div class="sectionhead"><span class="eyebrow">9 · District</span><h2>Granular density &amp; outstanding concentration</h2><div class="rule"></div></div>
+  <div id="s_ins_den">
   ${insightBlock(`District-wise intimation — ${fmt(districtIntim.length)} active districts`,"",
     [districtIntim.length?`Top districts: ${districtIntim.slice(0,5).map(x=>`<b>${x.name}</b> ${fmt(x.n)}`).join(", ")}.`:"",
      districtOS.length?`Highest OS concentration: ${districtOS.slice(0,5).map(x=>`<b>${x.name}</b> ${fmt(x.n)} OS (avg ${fmt1(x.age)}d)`).join(", ")}.`:"",
      zeroDistrictRows?`${fmt(zeroDistrictRows)} case(s) have no District mapped on their Hub record.`:""],
     districtRanked.filter(x=>x._flag==="risk").sort((a,b)=>a._v-b._v).slice(0,8).map(x=>`${x.name} — ${fmt(x._v)} intimations, bottom quartile (low penetration).`),
     districtRanked.filter(x=>x._flag==="good").sort((a,b)=>b._v-a._v).slice(0,8).map(x=>`${x.name} — ${fmt(x._v)} intimations, top quartile (high penetration).`))}
+  </div>
 
   <div class="footnote" style="margin:6px 22px 18px">
     <b>Methodology:</b> Each metric benchmarks against peer group quartiles for the current filtered scope. Thresholds: 5 submissions (assessors/CCEs), 3 uploads (uploaders). "Declining" = 30%+ month-on-month volume drop. All 9 sections respond to the Zone/Insurer/Vehicle Type/Segment filters above.
   </div>
   `;
   $("#ins_zone_holder").innerHTML=mselHTML("ins_zone","Zone",zoneOpts,fi.zone);
-  wireMsel("ins_zone",vals=>{state.insightsFilter.zone=vals;renderInsights();});
+  wireMsel("ins_zone",vals=>{state.insightsFilter.zone=vals;_saveOpenPanel();clearTimeout(window._tIns);window._tIns=setTimeout(()=>{renderInsights();_restoreOpenPanel();},400);});
   $("#ins_insurer_holder").innerHTML=mselHTML("ins_insurer","Insurer",insurerOpts,fi.insurer);
-  wireMsel("ins_insurer",vals=>{state.insightsFilter.insurer=vals;renderInsights();});
+  wireMsel("ins_insurer",vals=>{state.insightsFilter.insurer=vals;_saveOpenPanel();clearTimeout(window._tIns);window._tIns=setTimeout(()=>{renderInsights();_restoreOpenPanel();},400);});
   $("#ins_vtype_holder").innerHTML=mselHTML("ins_vtype","Vehicle Type",vtypeOpts,fi.vtype);
-  wireMsel("ins_vtype",vals=>{state.insightsFilter.vtype=vals;renderInsights();});
+  wireMsel("ins_vtype",vals=>{state.insightsFilter.vtype=vals;_saveOpenPanel();clearTimeout(window._tIns);window._tIns=setTimeout(()=>{renderInsights();_restoreOpenPanel();},400);});
   $("#ins_segment_holder").innerHTML=mselHTML("ins_segment","Segment",segOpts,fi.segment);
-  wireMsel("ins_segment",vals=>{state.insightsFilter.segment=vals;renderInsights();});
+  wireMsel("ins_segment",vals=>{state.insightsFilter.segment=vals;_saveOpenPanel();clearTimeout(window._tIns);window._tIns=setTimeout(()=>{renderInsights();_restoreOpenPanel();},400);});
   $("#ins_reset").onclick=()=>{state.insightsFilter={zone:[],insurer:[],vtype:[],segment:[]};renderInsights();};
 }
 
@@ -2208,9 +2373,9 @@ function fillFilters(){
     $("#flt_"+d.k+"_holder").innerHTML=mselHTML("flt_"+d.k,d.label,d.vals,state.flt[d.k]);
     wireMsel("flt_"+d.k,vals=>{
       state.flt[d.k]=vals;
-      // debounce: wait 400ms after last checkbox change before re-rendering, so panel stays open
+      _saveOpenPanel();
       clearTimeout(fltTimer);
-      fltTimer=setTimeout(()=>renderCurrent(),400);
+      fltTimer=setTimeout(()=>{renderCurrent();_restoreOpenPanel();},400);
     });
   });
 }
